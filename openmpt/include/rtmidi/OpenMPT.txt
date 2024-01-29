@@ -1,0 +1,7 @@
+RtMidi cross-platform MIDI classes
+https://github.com/thestk/rtmidi/ commit 806e18f575b68c23b26f9398e1b6866b335b5308 (2022-08-03)
+Files not used by OpenMPT (config/, doc/, msw/, tests/, build systems, C API)
+have been removed from this folder. No further local changes have been made.
+
+For building, premake is used to generate Visual Studio project files.
+See ../build/premake/ for details.
