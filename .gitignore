@@ -23,3 +23,10 @@ mono_crash.*.json
 # System/tool-specific ignores
 .directory
 *~
+
+# VSCode ignores
+.vscode/
+
+# Visual Studio ignores
+.vs/
+out/

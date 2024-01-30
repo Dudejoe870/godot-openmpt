@@ -1,8 +1,3 @@
-/* godot-cpp integration testing project.
- *
- * This is free and unencumbered software released into the public domain.
- */
-
 #include "register_types.h"
 
 #include <gdextension_interface.h>
@@ -11,8 +6,7 @@
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
-#include "example.h"
-#include "tests.h"
+#include "audio_stream_mpt.h"
 
 using namespace godot;
 
@@ -21,11 +15,8 @@ void initialize_openmpt_module(ModuleInitializationLevel p_level) {
 		return;
 	}
 
-	ClassDB::register_class<ExampleRef>();
-	ClassDB::register_class<ExampleMin>();
-	ClassDB::register_class<Example>();
-	ClassDB::register_class<ExampleVirtual>(true);
-	ClassDB::register_abstract_class<ExampleAbstract>();
+	ClassDB::register_class<AudioStreamPlaybackMPT>();
+	ClassDB::register_class<AudioStreamMPT>();
 }
 
 void uninitialize_openmpt_module(ModuleInitializationLevel p_level) {
