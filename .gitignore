@@ -30,3 +30,4 @@ mono_crash.*.json
 # Visual Studio ignores
 .vs/
 out/
+CMakeSettings.json

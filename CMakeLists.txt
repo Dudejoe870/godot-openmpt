@@ -57,7 +57,7 @@ target_include_directories(libopenmpt SYSTEM
 add_library(${PROJECT_NAME} SHARED
 	src/register_types.cpp
 	src/audio_stream_mpt.cpp
-)
+ "src/openmpt_singleton.cpp")
 
 target_include_directories(${PROJECT_NAME} SYSTEM
 	PRIVATE
