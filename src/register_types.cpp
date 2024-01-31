@@ -12,33 +12,35 @@
 
 using namespace godot;
 
+static OpenMPT *open_mpt_ptr = nullptr;
+
 void initialize_openmpt_module(ModuleInitializationLevel p_level) {
-	if (p_level != MODULE_INITIALIZATION_LEVEL_SERVERS) {
+	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
 		return;
 	}
-	std::cout << "Hello, is it me you're looking for?" << std::endl;
-
 	ClassDB::register_class<AudioStreamMPT>();
 	ClassDB::register_class<AudioStreamPlaybackMPT>();
-	//Engine::get_singleton()->register_singleton("OpenMPT", OpenMPTSingleton::get_singleton());
+	
+	ClassDB::register_class<OpenMPT>();
+	open_mpt_ptr = memnew(OpenMPT);
+	Engine::get_singleton()->register_singleton("OpenMPT", OpenMPT::get_singleton());
 }
 
 void uninitialize_openmpt_module(ModuleInitializationLevel p_level) {
-	if (p_level != MODULE_INITIALIZATION_LEVEL_SERVERS) {
+	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
 		return;
 	}
-	//Engine::get_singleton()->unregister_singleton("OpenMPT");
-	//memdelete(OpenMPTSingleton::get_singleton());
+	Engine::get_singleton()->unregister_singleton("OpenMPT");
+	memdelete(open_mpt_ptr);
 }
 
 extern "C" {
-// Initialization.
 GDExtensionBool GDE_EXPORT godot_openmpt_init(GDExtensionInterfaceGetProcAddress p_get_proc_address, GDExtensionClassLibraryPtr p_library, GDExtensionInitialization *r_initialization) {
 	godot::GDExtensionBinding::InitObject init_obj(p_get_proc_address, p_library, r_initialization);
 
 	init_obj.register_initializer(initialize_openmpt_module);
 	init_obj.register_terminator(uninitialize_openmpt_module);
-	init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SERVERS);
+	init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SCENE);
 
 	return init_obj.init();
 }

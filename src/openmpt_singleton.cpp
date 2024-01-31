@@ -4,10 +4,9 @@
 
 #include <libopenmpt/libopenmpt.hpp>
 
-OpenMPT* OpenMPT::instance = nullptr;
+OpenMPT *OpenMPT::instance = nullptr;
 
-OpenMPT*OpenMPT::get_singleton() {
-	if (!instance) instance = memnew(OpenMPT);
+OpenMPT *OpenMPT::get_singleton() {
 	return instance;
 }
 
@@ -19,10 +18,23 @@ TypedArray<String> OpenMPT::get_supported_extensions() const {
 	return result;
 }
 
-void OpenMPT::_bind_methods() {
-	ClassDB::bind_static_method("OpenMPT", D_METHOD("get_singleton"), &OpenMPT::get_singleton);
+bool OpenMPT::can_open_file(const PackedByteArray& p_data) const {
+	size_t recommended_size = openmpt::probe_file_header_get_recommended_size();
 
-	ClassDB::bind_method(D_METHOD("get_supported_extensions"), &OpenMPT::get_supported_extensions);
+	if (p_data.size() < recommended_size)
+		return openmpt::probe_file_header(openmpt::probe_file_header_flags_default2, p_data.ptr(), p_data.size(), p_data.size())
+			== openmpt::probe_file_header_result_success;
+
+	return openmpt::probe_file_header(openmpt::probe_file_header_flags_default2, p_data.ptr(), recommended_size) 
+		== openmpt::probe_file_header_result_success;
 }
 
-OpenMPT::OpenMPT() {}
+void OpenMPT::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("get_supported_extensions"), &OpenMPT::get_supported_extensions);
+
+	ClassDB::bind_method(D_METHOD("can_open_file", "data"), &OpenMPT::can_open_file);
+}
+
+OpenMPT::OpenMPT() {
+	instance = this;
+}

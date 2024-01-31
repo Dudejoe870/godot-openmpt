@@ -3,9 +3,11 @@ cmake_minimum_required(VERSION 3.6)
 
 set(GODOT_GDEXTENSION_DIR godot-cpp/gdextension/ CACHE STRING "Path to GDExtension interface header directory")
 set(CPP_BINDINGS_PATH godot-cpp/ CACHE STRING "Path to C++ bindings")
+set(GODOT_LIB_PATH ${CPP_BINDINGS_PATH}/bin CACHE STRING "Path to the built Godot C++ libraries")
 
 # Change the output directory to the bin directory
 set(BUILD_PATH ${CMAKE_SOURCE_DIR}/bin)
+
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${BUILD_PATH}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${BUILD_PATH}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${BUILD_PATH}")
@@ -136,7 +138,7 @@ endif()
 
 target_link_directories(${PROJECT_NAME}
 	PRIVATE
-		${CPP_BINDINGS_PATH}/bin/${CMAKE_BUILD_TYPE}
+		${GODOT_LIB_PATH}
 )
 
 target_link_libraries(${PROJECT_NAME}

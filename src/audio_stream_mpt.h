@@ -54,9 +54,8 @@ public:
 		LOOP_ENABLED
 	};
 private:
-	LoopMode loop_mode = LOOP_DISABLED;
+	LoopMode loop_mode = LoopMode::LOOP_DISABLED;
 	bool stereo = true;
-	int mix_rate = 44100;
 	PackedByteArray data;
 
 	// We need to create a module to parse some information about the file
@@ -65,15 +64,14 @@ private:
 
 	Vector<AudioStreamPlaybackMPT*> open_playback_objects;
 
+	Error module_error = Error::OK;
+
 	friend class AudioStreamPlaybackMPT;
 protected:
     static void _bind_methods();
 public:
 	void set_loop_mode(LoopMode p_loop_mode);
 	LoopMode get_loop_mode() const;
-
-	void set_mix_rate(int p_hz);
-	int get_mix_rate() const;
 
 	void set_stereo(bool p_enable);
 	bool is_stereo() const;
@@ -83,6 +81,8 @@ public:
 
 	void set_data(const PackedByteArray& p_data);
 	const PackedByteArray& get_data() const;
+
+	Error get_module_error() const;
 
 	virtual Ref<AudioStreamPlayback> _instantiate_playback() const override;
 	virtual String _get_stream_name() const override;

@@ -11,13 +11,15 @@ class OpenMPT;
 class OpenMPT : public Object {
 	GDCLASS(OpenMPT, Object);
 private:
-	static OpenMPT*instance;
+	static OpenMPT *instance;
 protected:
 	static void _bind_methods();
 public:
-	static OpenMPT*get_singleton();
+	static OpenMPT *get_singleton();
 
 	TypedArray<String> get_supported_extensions() const;
+
+	bool can_open_file(const PackedByteArray& p_data) const;
 
 	OpenMPT();
 };
