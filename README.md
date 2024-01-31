@@ -32,6 +32,8 @@ Now in the `out/build` folder you should have two directories for each config.
 
 Go into the `bin` folder of each and copy the DLLs to a new `bin` folder at the root of the `godot-cpp` subdirectory.
 
+Also copy the `gen` folder from one of the folders into the root of the `godot-cpp` subdirectory.
+
 ### The Addon
 
 Open the root repository directory in Visual Studio 2022 and build it in `x64-Debug`.
