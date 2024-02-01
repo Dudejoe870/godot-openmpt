@@ -1,6 +1,9 @@
 project(godot-openmpt)
 cmake_minimum_required(VERSION 3.6)
 
+set(CMAKE_STATIC_LIBRARY_PREFIX "")
+set(CMAKE_SHARED_LIBRARY_PREFIX "")
+
 set(GODOT_GDEXTENSION_DIR godot-cpp/gdextension/ CACHE STRING "Path to GDExtension interface header directory")
 set(CPP_BINDINGS_PATH godot-cpp/ CACHE STRING "Path to C++ bindings")
 set(GODOT_LIB_PATH ${CPP_BINDINGS_PATH}/bin CACHE STRING "Path to the built Godot C++ libraries")
@@ -59,7 +62,8 @@ target_include_directories(libopenmpt SYSTEM
 add_library(${PROJECT_NAME} SHARED
 	src/register_types.cpp
 	src/audio_stream_mpt.cpp
- "src/openmpt_singleton.cpp")
+    src/openmpt_singleton.cpp
+)
 
 target_include_directories(${PROJECT_NAME} SYSTEM
 	PRIVATE
@@ -72,12 +76,13 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	# using Visual Studio C++
 	set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} /WX") # /GF /MP
 	set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} /DTYPED_METHOD_BIND")
+	set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} /EHsc")
 
 	if(CMAKE_BUILD_TYPE MATCHES Debug)
 		set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} /MDd") # /Od /RTC1 /Zi
 	else()
 		set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} /MD /O2") # /Oy /GL /Gy
-		STRING(REGEX REPLACE "/RTC(su|[1su])" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+		string(REGEX REPLACE "/RTC(su|[1su])" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 		string(REPLACE "/RTC1" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
 	endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
@@ -99,7 +104,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 else()
 	set(GODOT_LINKER_FLAGS "-static-libgcc -static-libstdc++ -Wl,-R,'$$ORIGIN'")
 
-	set(GODOT_COMPILE_FLAGS "-fPIC -g -Wwrite-strings")
+	set(GODOT_COMPILE_FLAGS "-fPIC -g -Wwrite-strings -fexceptions -frtti -pthread")
 
 	if(CMAKE_BUILD_TYPE MATCHES Debug)
 		set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} -fno-omit-frame-pointer -O0")
@@ -108,10 +113,11 @@ else()
 	endif()
 endif()
 
-# Can't disable exceptions, libopenmpt uses them.
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-	set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} /EHsc")
-endif()
+# Add the compile flags
+set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS ${GODOT_COMPILE_FLAGS})
+set_property(TARGET libopenmpt APPEND_STRING PROPERTY COMPILE_FLAGS ${GODOT_COMPILE_FLAGS})
+set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY LINK_FLAGS ${GODOT_LINKER_FLAGS})
+set_property(TARGET libopenmpt APPEND_STRING PROPERTY LINK_FLAGS ${GODOT_LINKER_FLAGS})
 
 # Create the correct name (godot.os.build_type.system_bits)
 # Synchronized with godot-cpp's CMakeLists.txt
@@ -145,10 +151,6 @@ target_link_libraries(${PROJECT_NAME}
 	godot-cpp.${SYSTEM_NAME}.${BUILD_TYPE}${BITS}
 	libopenmpt
 )
-
-# Add the compile flags
-set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS ${GODOT_COMPILE_FLAGS})
-set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY LINK_FLAGS ${GODOT_LINKER_FLAGS})
 
 set(MAIN_EXT_OUTPUT_NAME libgdmpt-${SYSTEM_NAME}.${BUILD_TYPE}${BITS})
 set_property(TARGET ${PROJECT_NAME} PROPERTY OUTPUT_NAME ${MAIN_EXT_OUTPUT_NAME})

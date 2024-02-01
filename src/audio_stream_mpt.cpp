@@ -128,7 +128,7 @@ double AudioStreamMPT::_get_length() const {
 	if (this->mpt_module)
 	{
 		double duration = this->mpt_module->get_duration_seconds();
-		if (isinf(duration))
+		if (std::isinf(duration))
 			return 0.0;
 	}
 	return 0.0;
