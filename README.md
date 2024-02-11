@@ -8,7 +8,9 @@ Because my game uses mod-tracker music inspired by Deus-Ex, and it also makes lo
 
 ## Where can I find a pre-built addon?
 
-You can't right now, this has to be built from source because I haven't setup any way for there to be proper releases yet or anything. It is experimental of course.
+Just go to the prebuilt branch and use the download ZIP feature of Github, extract it into your project and you're done!
+
+Unfortunately there are no MacOS, Android, iOS, or any 32-bit binaries currently prebuilt. If you need any of those you will have to build them yourself (and in the case of mobile platforms, add them to the .gdextension file)
 
 ## What platforms does it support?
 
