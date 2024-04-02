@@ -3,6 +3,7 @@
 
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
+#include <godot_cpp/variant/dictionary.hpp>
 
 using namespace godot;
 
@@ -18,6 +19,10 @@ public:
 	static OpenMPT *get_singleton();
 
 	TypedArray<String> get_supported_extensions() const;
+	bool is_extension_supported(String extension) const;
+
+	Dictionary get_library_version() const;
+	Dictionary get_core_version() const;
 
 	bool can_open_file(const PackedByteArray& p_data) const;
 
