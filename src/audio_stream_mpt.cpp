@@ -6,8 +6,26 @@
 #include <godot_cpp/templates/local_vector.hpp>
 
 #include <libopenmpt/libopenmpt.hpp>
+#include <godot_cpp/core/error_macros.hpp>
 
 using namespace godot;
+
+#define MOD_NOT_LOADED_MSG "Module not loaded."
+#define INT_NOT_LOADED_MSG "Interactive extension isn't supported. (perhaps the file format does not implement it)"
+#define INT2_NOT_LOADED_MSG "Interactive2 extension isn't supported. (perhaps the file format does not implement it)"
+#define INT3_NOT_LOADED_MSG "Interactive3 extension isn't supported. (perhaps the file format does not implement it)"
+
+#define CHECK_MOD_LOADED_RET(retval) if (!this->mpt_module) { WARN_PRINT_ED(MOD_NOT_LOADED_MSG); return retval; }
+#define CHECK_MOD_LOADED_RETV() if (!this->mpt_module) { WARN_PRINT_ED(MOD_NOT_LOADED_MSG); return; }
+
+#define CHECK_INT_LOADED_RET(retval) CHECK_MOD_LOADED_RET(retval); if (!this->mpt_interactive) { WARN_PRINT_ED(INT_NOT_LOADED_MSG); return retval; }
+#define CHECK_INT_LOADED_RETV() CHECK_MOD_LOADED_RETV(); if (!this->mpt_module) { WARN_PRINT_ED(INT_NOT_LOADED_MSG); return; }
+
+#define CHECK_INT2_LOADED_RET(retval) CHECK_MOD_LOADED_RET(retval); if (!this->mpt_interactive) { WARN_PRINT_ED(INT2_NOT_LOADED_MSG); return retval; }
+#define CHECK_INT2_LOADED_RETV() CHECK_MOD_LOADED_RETV(); if (!this->mpt_module) { WARN_PRINT_ED(INT2_NOT_LOADED_MSG); return; }
+
+#define CHECK_INT3_LOADED_RET(retval) CHECK_MOD_LOADED_RET(retval); if (!this->mpt_interactive) { WARN_PRINT_ED(INT3_NOT_LOADED_MSG); return retval; }
+#define CHECK_INT3_LOADED_RETV() CHECK_MOD_LOADED_RETV(); if (!this->mpt_module) { WARN_PRINT_ED(INT3_NOT_LOADED_MSG); return; }
 
 void AudioStreamPlaybackMPT::_start(double p_from_pos) {
 	_seek(p_from_pos);
@@ -27,38 +45,231 @@ int AudioStreamPlaybackMPT::_get_loop_count() const {
 }
 
 double AudioStreamPlaybackMPT::_get_playback_position() const {
-	if (!this->mpt_module) return 0.0;
+	CHECK_MOD_LOADED_RET(0.0);
 	return this->mpt_module->get_position_seconds();
 }
 
 void AudioStreamPlaybackMPT::_seek(double p_time) {
-	if (!this->mpt_module) return;
+	CHECK_MOD_LOADED_RETV();
 	this->mpt_module->set_position_seconds(p_time);
 }
 
 void AudioStreamPlaybackMPT::seek(int32_t p_order_position, int32_t p_row) {
-	if (!this->mpt_module) return;
+	CHECK_MOD_LOADED_RETV();
 	this->mpt_module->set_position_order_row(p_order_position, p_row);
 }
 
-int32_t AudioStreamPlaybackMPT::get_order_position() {
-	if (!this->mpt_module) return 0;
+bool AudioStreamPlaybackMPT::is_module_loaded() const {
+	return this->mpt_module != nullptr;
+}
+
+bool AudioStreamPlaybackMPT::is_interactive_supported() const {
+	return this->mpt_interactive != nullptr;
+}
+
+bool AudioStreamPlaybackMPT::is_interactive2_supported() const {
+	return this->mpt_interactive2 != nullptr;
+}
+
+bool AudioStreamPlaybackMPT::is_interactive3_supported() const {
+	return this->mpt_interactive3 != nullptr;
+}
+
+int32_t AudioStreamPlaybackMPT::get_current_order() const {
+	CHECK_MOD_LOADED_RET(0);
 	return this->mpt_module->get_current_order();
 }
 
-int32_t AudioStreamPlaybackMPT::get_current_row() {
-	if (!this->mpt_module) return 0;
+void AudioStreamPlaybackMPT::set_current_order(int32_t order) {
+	CHECK_MOD_LOADED_RETV();
+	this->mpt_module->set_position_order_row(order, 0);
+}
+
+int32_t AudioStreamPlaybackMPT::get_current_pattern() const {
+	CHECK_MOD_LOADED_RET(0);
+	return this->mpt_module->get_current_pattern();
+}
+
+int32_t AudioStreamPlaybackMPT::get_current_playing_channels() const {
+	CHECK_MOD_LOADED_RET(0);
+	return this->mpt_module->get_current_playing_channels();
+}
+
+int32_t AudioStreamPlaybackMPT::get_current_row() const {
+	CHECK_MOD_LOADED_RET(0);
 	return this->mpt_module->get_current_row();
 }
 
-int32_t AudioStreamPlaybackMPT::get_current_pattern() {
-	if (!this->mpt_module) return 0;
-	return this->mpt_module->get_current_pattern();
+void AudioStreamPlaybackMPT::set_current_row(int32_t row) const {
+	CHECK_MOD_LOADED_RETV();
+	this->mpt_module->set_position_order_row(this->mpt_module->get_current_order(), row);
+}
+
+float AudioStreamPlaybackMPT::get_current_channel_vu_left(int32_t channel) const {
+	CHECK_MOD_LOADED_RET(0.0f);
+	return this->mpt_module->get_current_channel_vu_left(channel);
+}
+
+float AudioStreamPlaybackMPT::get_current_channel_vu_mono(int32_t channel) const {
+	CHECK_MOD_LOADED_RET(0.0f);
+	return this->mpt_module->get_current_channel_vu_mono(channel);
+}
+
+float AudioStreamPlaybackMPT::get_current_channel_vu_rear_left(int32_t channel) const {
+	CHECK_MOD_LOADED_RET(0.0f);
+	return this->mpt_module->get_current_channel_vu_rear_left(channel);
+}
+
+float AudioStreamPlaybackMPT::get_current_channel_vu_rear_right(int32_t channel) const {
+	CHECK_MOD_LOADED_RET(0.0f);
+	return this->mpt_module->get_current_channel_vu_rear_right(channel);
+}
+
+float AudioStreamPlaybackMPT::get_current_channel_vu_right(int32_t channel) const {
+	CHECK_MOD_LOADED_RET(0.0f);
+	return this->mpt_module->get_current_channel_vu_right(channel);
+}
+
+double AudioStreamPlaybackMPT::get_current_estimated_bpm() const {
+	CHECK_MOD_LOADED_RET(0.0);
+	return this->mpt_module->get_current_estimated_bpm();
+}
+
+void AudioStreamPlaybackMPT::select_subsong(int32_t subsong) {
+	CHECK_MOD_LOADED_RETV();
+	this->mpt_module->select_subsong(subsong);
+}
+
+int32_t AudioStreamPlaybackMPT::get_selected_subsong() const {
+	CHECK_MOD_LOADED_RET(0);
+	return this->mpt_module->get_selected_subsong();
+}
+
+void AudioStreamPlaybackMPT::set_current_speed(int32_t speed) {
+	CHECK_INT_LOADED_RETV();
+	this->mpt_interactive->set_current_speed(speed);
+}
+
+int32_t AudioStreamPlaybackMPT::get_current_speed() const {
+	CHECK_MOD_LOADED_RET(0);
+	return this->mpt_module->get_current_speed();
+}
+
+void AudioStreamPlaybackMPT::set_current_tempo(double tempo) {
+	CHECK_INT3_LOADED_RETV();
+	return this->mpt_interactive3->set_current_tempo2(tempo);
+}
+
+double AudioStreamPlaybackMPT::get_current_tempo() const {
+	CHECK_MOD_LOADED_RET(0.0);
+	return this->mpt_module->get_current_tempo2();
+}
+
+void AudioStreamPlaybackMPT::set_tempo_factor(double factor) {
+	CHECK_INT_LOADED_RETV();
+	this->mpt_interactive->set_tempo_factor(factor);
+}
+
+double AudioStreamPlaybackMPT::get_tempo_factor() const {
+	CHECK_INT_LOADED_RET(0.0);
+	return this->mpt_interactive->get_tempo_factor();
+}
+
+void AudioStreamPlaybackMPT::set_pitch_factor(double factor) {
+	CHECK_INT_LOADED_RETV();
+	this->mpt_interactive->set_pitch_factor(factor);
+}
+
+double AudioStreamPlaybackMPT::get_pitch_factor() const {
+	CHECK_INT_LOADED_RET(0.0);
+	return this->mpt_interactive->get_pitch_factor();
+}
+
+void AudioStreamPlaybackMPT::set_global_volume(double volume) {
+	CHECK_INT_LOADED_RETV();
+	this->mpt_interactive->set_global_volume(volume);
+}
+
+double AudioStreamPlaybackMPT::get_global_volume() const {
+	CHECK_INT_LOADED_RET(0.0);
+	return this->mpt_interactive->get_global_volume();
+}
+
+void AudioStreamPlaybackMPT::set_channel_volume(int32_t channel, double volume) {
+	CHECK_INT_LOADED_RETV();
+	this->mpt_interactive->set_channel_volume(channel, volume);
+}
+
+double AudioStreamPlaybackMPT::get_channel_volume(int32_t channel) const {
+	CHECK_INT_LOADED_RET(0.0);
+	return this->mpt_interactive->get_channel_volume(channel);
+}
+
+void AudioStreamPlaybackMPT::set_channel_mute_status(int32_t channel, bool mute) {
+	CHECK_INT_LOADED_RETV();
+	this->mpt_interactive->set_channel_mute_status(channel, mute);
+}
+
+bool AudioStreamPlaybackMPT::get_channel_mute_status(int32_t channel) const {
+	CHECK_INT_LOADED_RET(false);
+	return this->mpt_interactive->get_channel_mute_status(channel);
+}
+
+void AudioStreamPlaybackMPT::set_instrument_mute_status(int32_t instrument, bool mute) {
+	CHECK_INT_LOADED_RETV();
+	this->mpt_interactive->set_instrument_mute_status(instrument, mute);
+}
+
+bool AudioStreamPlaybackMPT::get_instrument_mute_status(int32_t instrument) const {
+	CHECK_INT_LOADED_RET(false);
+	return this->mpt_interactive->get_instrument_mute_status(instrument);
+}
+
+int32_t AudioStreamPlaybackMPT::play_note(int32_t instrument, int32_t note, double volume, double panning) {
+	CHECK_INT_LOADED_RET(-1);
+	return this->mpt_interactive->play_note(instrument, note, volume, panning);
+}
+
+void AudioStreamPlaybackMPT::stop_note(int32_t channel) {
+	CHECK_INT_LOADED_RETV();
+	this->mpt_interactive->stop_note(channel);
+}
+
+void AudioStreamPlaybackMPT::note_off(int32_t channel) {
+	CHECK_INT2_LOADED_RETV();
+	this->mpt_interactive2->note_off(channel);
+}
+
+void AudioStreamPlaybackMPT::note_fade(int32_t channel) {
+	CHECK_INT2_LOADED_RETV();
+	this->mpt_interactive2->note_fade(channel);
+}
+
+void AudioStreamPlaybackMPT::set_channel_panning(int32_t channel, double panning) {
+	CHECK_INT2_LOADED_RETV();
+	this->mpt_interactive2->set_channel_panning(channel, panning);
+}
+
+double AudioStreamPlaybackMPT::get_channel_panning(int32_t channel) const {
+	CHECK_INT2_LOADED_RET(0.0);
+	return this->mpt_interactive2->get_channel_panning(channel);
+}
+
+void AudioStreamPlaybackMPT::set_note_finetune(int32_t channel, double finetune) {
+	CHECK_INT2_LOADED_RETV();
+	this->mpt_interactive2->set_note_finetune(channel, finetune);
+}
+
+double AudioStreamPlaybackMPT::get_note_finetune(int32_t channel) const {
+	CHECK_INT2_LOADED_RET(0.0);
+	return this->mpt_interactive2->get_note_finetune(channel);
 }
 
 int32_t AudioStreamPlaybackMPT::_mix(AudioFrame *p_buffer, double p_rate_scale, int32_t p_frames) {
 	if (!this->mpt_module) {
 		active = false;
+		for (int i = 0; i < p_frames; i++)
+			p_buffer[i] = AudioFrame{ 0, 0 };
 		return 0;
 	}
 
@@ -92,9 +303,74 @@ int32_t AudioStreamPlaybackMPT::_mix(AudioFrame *p_buffer, double p_rate_scale, 
 void AudioStreamPlaybackMPT::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("seek", "order_position", "row"), &AudioStreamPlaybackMPT::seek);
 
-	ClassDB::bind_method(D_METHOD("get_order_position"), &AudioStreamPlaybackMPT::get_order_position);
-	ClassDB::bind_method(D_METHOD("get_current_row"), &AudioStreamPlaybackMPT::get_current_row);
+	ClassDB::bind_method(D_METHOD("is_module_loaded"), &AudioStreamPlaybackMPT::is_module_loaded);
+	ClassDB::bind_method(D_METHOD("is_interactive_supported"), &AudioStreamPlaybackMPT::is_interactive_supported);
+	ClassDB::bind_method(D_METHOD("is_interactive2_supported"), &AudioStreamPlaybackMPT::is_interactive2_supported);
+	ClassDB::bind_method(D_METHOD("is_interactive3_supported"), &AudioStreamPlaybackMPT::is_interactive3_supported);
+
+	ClassDB::bind_method(D_METHOD("get_current_channel_vu_left", "channel"), &AudioStreamPlaybackMPT::get_current_channel_vu_left);
+	ClassDB::bind_method(D_METHOD("get_current_channel_vu_mono", "channel"), &AudioStreamPlaybackMPT::get_current_channel_vu_mono);
+	ClassDB::bind_method(D_METHOD("get_current_channel_vu_rear_left", "channel"), &AudioStreamPlaybackMPT::get_current_channel_vu_rear_left);
+	ClassDB::bind_method(D_METHOD("get_current_channel_vu_rear_right", "channel"), &AudioStreamPlaybackMPT::get_current_channel_vu_rear_right);
+	ClassDB::bind_method(D_METHOD("get_current_channel_vu_right", "channel"), &AudioStreamPlaybackMPT::get_current_channel_vu_right);
+
+	ClassDB::bind_method(D_METHOD("get_current_estimated_bpm"), &AudioStreamPlaybackMPT::get_current_estimated_bpm);
+
+	ClassDB::bind_method(D_METHOD("set_current_order", "order"), &AudioStreamPlaybackMPT::set_current_order);
+	ClassDB::bind_method(D_METHOD("get_current_order"), &AudioStreamPlaybackMPT::get_current_order);
+
 	ClassDB::bind_method(D_METHOD("get_current_pattern"), &AudioStreamPlaybackMPT::get_current_pattern);
+	ClassDB::bind_method(D_METHOD("get_current_playing_channels"), &AudioStreamPlaybackMPT::get_current_playing_channels);
+
+	ClassDB::bind_method(D_METHOD("set_current_row", "row"), &AudioStreamPlaybackMPT::set_current_row);
+	ClassDB::bind_method(D_METHOD("get_current_row"), &AudioStreamPlaybackMPT::get_current_row);
+
+	ClassDB::bind_method(D_METHOD("select_subsong", "subsong"), &AudioStreamPlaybackMPT::select_subsong);
+	ClassDB::bind_method(D_METHOD("get_selected_subsong"), &AudioStreamPlaybackMPT::get_selected_subsong);
+
+	ClassDB::bind_method(D_METHOD("set_current_speed", "speed"), &AudioStreamPlaybackMPT::set_current_speed);
+	ClassDB::bind_method(D_METHOD("get_current_speed"), &AudioStreamPlaybackMPT::get_current_speed);
+
+	ClassDB::bind_method(D_METHOD("set_current_tempo", "tempo"), &AudioStreamPlaybackMPT::set_current_tempo);
+	ClassDB::bind_method(D_METHOD("get_current_tempo"), &AudioStreamPlaybackMPT::get_current_tempo);
+
+	ClassDB::bind_method(D_METHOD("set_tempo_factor", "factor"), &AudioStreamPlaybackMPT::set_tempo_factor);
+	ClassDB::bind_method(D_METHOD("get_tempo_factor"), &AudioStreamPlaybackMPT::get_tempo_factor);
+
+	ClassDB::bind_method(D_METHOD("set_pitch_factor", "factor"), &AudioStreamPlaybackMPT::set_pitch_factor);
+	ClassDB::bind_method(D_METHOD("get_pitch_factor"), &AudioStreamPlaybackMPT::get_pitch_factor);
+
+	ClassDB::bind_method(D_METHOD("set_global_volume", "volume"), &AudioStreamPlaybackMPT::set_global_volume);
+	ClassDB::bind_method(D_METHOD("get_global_volume"), &AudioStreamPlaybackMPT::get_global_volume);
+
+	ClassDB::bind_method(D_METHOD("set_channel_volume", "channel", "volume"), &AudioStreamPlaybackMPT::set_channel_volume);
+	ClassDB::bind_method(D_METHOD("get_channel_volume", "channel"), &AudioStreamPlaybackMPT::get_channel_volume);
+
+	ClassDB::bind_method(D_METHOD("set_channel_mute_status", "channel", "mute"), &AudioStreamPlaybackMPT::set_channel_mute_status);
+	ClassDB::bind_method(D_METHOD("get_channel_mute_status", "channel"), &AudioStreamPlaybackMPT::get_channel_mute_status);
+
+	ClassDB::bind_method(D_METHOD("set_instrument_mute_status", "instrument", "mute"), &AudioStreamPlaybackMPT::set_instrument_mute_status);
+	ClassDB::bind_method(D_METHOD("get_instrument_mute_status", "instrument"), &AudioStreamPlaybackMPT::get_instrument_mute_status);
+
+	ClassDB::bind_method(D_METHOD("play_note", "instrument", "note", "volume", "panning"), &AudioStreamPlaybackMPT::play_note);
+	ClassDB::bind_method(D_METHOD("stop_note", "channel"), &AudioStreamPlaybackMPT::stop_note);
+	ClassDB::bind_method(D_METHOD("note_off", "channel"), &AudioStreamPlaybackMPT::note_off);
+	ClassDB::bind_method(D_METHOD("note_fade", "channel"), &AudioStreamPlaybackMPT::note_fade);
+
+	ClassDB::bind_method(D_METHOD("set_channel_panning", "channel", "panning"), &AudioStreamPlaybackMPT::set_channel_panning);
+	ClassDB::bind_method(D_METHOD("get_channel_panning", "channel"), &AudioStreamPlaybackMPT::get_channel_panning);
+
+	ClassDB::bind_method(D_METHOD("set_note_finetune", "channel", "finetune"), &AudioStreamPlaybackMPT::set_note_finetune);
+	ClassDB::bind_method(D_METHOD("get_note_finetune", "channel"), &AudioStreamPlaybackMPT::get_note_finetune);
+
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "subsong"), "select_subsong", "get_selected_subsong");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "current_order"), "set_current_order", "get_current_order");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "current_row"), "set_current_row", "get_current_row");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "speed"), "set_current_speed", "get_current_speed");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "tempo"), "set_current_tempo", "get_current_tempo");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "tempo_factor"), "set_tempo_factor", "get_tempo_factor");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "pitch_factor"), "set_pitch_factor", "get_pitch_factor");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "global_volume"), "set_global_volume", "get_global_volume");
 }
 
 AudioStreamPlaybackMPT::AudioStreamPlaybackMPT() {}
@@ -125,13 +401,11 @@ bool AudioStreamMPT::is_stereo() const {
 }
 
 double AudioStreamMPT::_get_length() const {
-	if (this->mpt_module)
-	{
-		double duration = this->mpt_module->get_duration_seconds();
-		if (std::isinf(duration))
-			return 0.0;
-	}
-	return 0.0;
+	CHECK_MOD_LOADED_RET(0.0);
+	double duration = this->mpt_module->get_duration_seconds();
+	if (std::isinf(duration))
+		return 0.0;
+	return duration;
 }
 
 bool AudioStreamMPT::_is_monophonic() const {
@@ -160,31 +434,161 @@ void AudioStreamMPT::set_data(const PackedByteArray& p_data) {
 	AudioServer::get_singleton()->lock();
 	for (AudioStreamPlaybackMPT* playback : open_playback_objects) {
 		if (playback->mpt_module) delete playback->mpt_module;
-		playback->mpt_module = new openmpt::module(this->data.ptr(), this->data.size());
+		playback->mpt_module = new openmpt::module_ext(this->data.ptr(), this->data.size());
+		playback->mpt_interactive = static_cast<openmpt::ext::interactive*>(
+			playback->mpt_module->get_interface(openmpt::ext::interactive_id));
+		playback->mpt_interactive2 = static_cast<openmpt::ext::interactive2*>(
+			playback->mpt_module->get_interface(openmpt::ext::interactive2_id));
+		playback->mpt_interactive3 = static_cast<openmpt::ext::interactive3*>(
+			playback->mpt_module->get_interface(openmpt::ext::interactive3_id));
 	}
 	AudioServer::get_singleton()->unlock();
 	return;
 
 set_empty_module:
 	this->mpt_module = nullptr;
+	this->data = PackedByteArray();
 
-	if (open_playback_objects.is_empty()) {
-		this->data = PackedByteArray();
-		return;
-	}
+	if (open_playback_objects.is_empty()) return;
 	AudioServer::get_singleton()->lock();
 	for (AudioStreamPlaybackMPT* playback : open_playback_objects) {
 		if (playback->mpt_module) delete playback->mpt_module;
 		playback->mpt_module = nullptr;
+		playback->mpt_interactive = nullptr;
+		playback->mpt_interactive2 = nullptr;
+		playback->mpt_interactive3 = nullptr;
 	}
 	AudioServer::get_singleton()->unlock();
-
-	this->data = PackedByteArray();
 	return;
 }
 
 const PackedByteArray& AudioStreamMPT::get_data() const {
 	return this->data;
+}
+
+TypedArray<String> AudioStreamMPT::get_channel_names() const {
+	CHECK_MOD_LOADED_RET(TypedArray<String>());
+	TypedArray<String> result;
+	for (std::string name : this->mpt_module->get_channel_names())
+		result.append(name.c_str());
+	return result;
+}
+
+TypedArray<String> AudioStreamMPT::get_instrument_names() const {
+	CHECK_MOD_LOADED_RET({});
+	TypedArray<String> result;
+	for (std::string name : this->mpt_module->get_instrument_names())
+		result.append(name.c_str());
+	return result;
+}
+
+TypedArray<String> AudioStreamMPT::get_metadata_keys() const {
+	CHECK_MOD_LOADED_RET(TypedArray<String>());
+	TypedArray<String> result;
+	for (std::string name : this->mpt_module->get_metadata_keys())
+		result.append(name.c_str());
+	return result;
+}
+
+String AudioStreamMPT::get_metadata(String key) const {
+	CHECK_MOD_LOADED_RET("");
+	return this->mpt_module->get_metadata(key.ascii().get_data()).c_str();
+}
+
+Dictionary AudioStreamMPT::get_all_metadata() const {
+	CHECK_MOD_LOADED_RET(Dictionary());
+	Dictionary result;
+	std::vector<std::string> keys = this->mpt_module->get_metadata_keys();
+	for (std::string key : keys)
+		result[key.c_str()] = this->mpt_module->get_metadata(key).c_str();
+	return result;
+}
+
+double AudioStreamMPT::get_estimated_bpm() const {
+	CHECK_MOD_LOADED_RET(0.0);
+	return this->mpt_module->get_current_estimated_bpm();
+}
+
+int32_t AudioStreamMPT::get_speed() const {
+	CHECK_MOD_LOADED_RET(0);
+	return this->mpt_module->get_current_speed();
+}
+
+double AudioStreamMPT::get_tempo() const {
+	CHECK_MOD_LOADED_RET(0.0);
+	return this->mpt_module->get_current_tempo2();
+}
+
+int32_t AudioStreamMPT::get_num_channels() const {
+	CHECK_MOD_LOADED_RET(0);
+	return this->mpt_module->get_num_channels();
+}
+
+int32_t AudioStreamMPT::get_num_instruments() const {
+	CHECK_MOD_LOADED_RET(0);
+	return this->mpt_module->get_num_instruments();
+}
+
+int32_t AudioStreamMPT::get_num_orders() const {
+	CHECK_MOD_LOADED_RET(0);
+	return this->mpt_module->get_num_orders();
+}
+
+int32_t AudioStreamMPT::get_num_patterns() const {
+	CHECK_MOD_LOADED_RET(0);
+	return this->mpt_module->get_num_patterns();
+}
+
+int32_t AudioStreamMPT::get_num_samples() const {
+	CHECK_MOD_LOADED_RET(0);
+	return this->mpt_module->get_num_samples();
+}
+
+int32_t AudioStreamMPT::get_num_subsongs() const {
+	CHECK_MOD_LOADED_RET(0);
+	return this->mpt_module->get_num_subsongs();
+}
+
+TypedArray<String> AudioStreamMPT::get_order_names() const {
+	CHECK_MOD_LOADED_RET(TypedArray<String>());
+	TypedArray<String> result;
+	for (std::string name : this->mpt_module->get_order_names())
+		result.append(name.c_str());
+	return result;
+}
+
+int32_t AudioStreamMPT::get_order_pattern(int32_t order) const {
+	CHECK_MOD_LOADED_RET(0);
+	return this->mpt_module->get_order_pattern(order);
+}
+
+TypedArray<String> AudioStreamMPT::get_pattern_names() const {
+	CHECK_MOD_LOADED_RET(TypedArray<String>());
+	TypedArray<String> result;
+	for (std::string name : this->mpt_module->get_pattern_names())
+		result.append(name.c_str());
+	return result;
+}
+
+int32_t AudioStreamMPT::get_pattern_num_rows(int32_t pattern) const {
+	CHECK_MOD_LOADED_RET(0);
+	return this->mpt_module->get_pattern_num_rows(pattern);
+}
+
+TypedArray<String> AudioStreamMPT::get_sample_names() const {
+	CHECK_MOD_LOADED_RET(TypedArray<String>());
+	TypedArray<String> result;
+	for (std::string name : this->mpt_module->get_sample_names())
+		result.append(name.c_str());
+	return result;
+}
+
+TypedArray<String> AudioStreamMPT::get_subsong_names() const {
+	CHECK_MOD_LOADED_RET(TypedArray<String>());
+	TypedArray<String> result;
+	for (std::string name : this->mpt_module->get_subsong_names())
+		result.append(name.c_str());
+	return result;
 }
 
 Error AudioStreamMPT::get_module_error() const {
@@ -195,7 +599,16 @@ Ref<AudioStreamPlayback> AudioStreamMPT::_instantiate_playback() const {
 	Ref<AudioStreamPlaybackMPT> playback;
 	playback.instantiate();
 	playback->base = Ref<AudioStreamMPT>(this);
-	playback->mpt_module = !data.is_empty() ? new openmpt::module(this->data.ptr(), this->data.size()) : nullptr;
+	playback->mpt_module = !data.is_empty() ? new openmpt::module_ext(this->data.ptr(), this->data.size()) : nullptr;
+	if (playback->mpt_module)
+	{
+		playback->mpt_interactive = static_cast<openmpt::ext::interactive*>(
+			playback->mpt_module->get_interface(openmpt::ext::interactive_id));
+		playback->mpt_interactive2 = static_cast<openmpt::ext::interactive2*>(
+			playback->mpt_module->get_interface(openmpt::ext::interactive2_id));
+		playback->mpt_interactive3 = static_cast<openmpt::ext::interactive3*>(
+			playback->mpt_module->get_interface(openmpt::ext::interactive3_id));
+	}
 	const_cast<AudioStreamMPT*>(this)->open_playback_objects.append(playback.ptr());
 	return playback;
 }
@@ -205,14 +618,41 @@ String AudioStreamMPT::_get_stream_name() const {
 }
 
 void AudioStreamMPT::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("set_data", "data"), &AudioStreamMPT::set_data);
-	ClassDB::bind_method(D_METHOD("get_data"), &AudioStreamMPT::get_data);
-
 	ClassDB::bind_method(D_METHOD("set_loop_mode", "loop_mode"), &AudioStreamMPT::set_loop_mode);
 	ClassDB::bind_method(D_METHOD("get_loop_mode"), &AudioStreamMPT::get_loop_mode);
 
 	ClassDB::bind_method(D_METHOD("set_stereo", "stereo"), &AudioStreamMPT::set_stereo);
 	ClassDB::bind_method(D_METHOD("is_stereo"), &AudioStreamMPT::is_stereo);
+
+	ClassDB::bind_method(D_METHOD("set_data", "data"), &AudioStreamMPT::set_data);
+	ClassDB::bind_method(D_METHOD("get_data"), &AudioStreamMPT::get_data);
+
+	ClassDB::bind_method(D_METHOD("get_channel_names"), &AudioStreamMPT::get_channel_names);
+	ClassDB::bind_method(D_METHOD("get_instrument_names"), &AudioStreamMPT::get_instrument_names);
+
+	ClassDB::bind_method(D_METHOD("get_metadata_keys"), &AudioStreamMPT::get_metadata_keys);
+	ClassDB::bind_method(D_METHOD("get_metadata", "key"), &AudioStreamMPT::get_metadata);
+	ClassDB::bind_method(D_METHOD("get_all_metadata"), &AudioStreamMPT::get_all_metadata);
+
+	ClassDB::bind_method(D_METHOD("get_estimated_bpm"), &AudioStreamMPT::get_estimated_bpm);
+	ClassDB::bind_method(D_METHOD("get_speed"), &AudioStreamMPT::get_speed);
+	ClassDB::bind_method(D_METHOD("get_tempo"), &AudioStreamMPT::get_tempo);
+
+	ClassDB::bind_method(D_METHOD("get_num_channels"), &AudioStreamMPT::get_num_channels);
+	ClassDB::bind_method(D_METHOD("get_num_instruments"), &AudioStreamMPT::get_num_instruments);
+	ClassDB::bind_method(D_METHOD("get_num_orders"), &AudioStreamMPT::get_num_orders);
+	ClassDB::bind_method(D_METHOD("get_num_patterns"), &AudioStreamMPT::get_num_patterns);
+	ClassDB::bind_method(D_METHOD("get_num_samples"), &AudioStreamMPT::get_num_samples);
+	ClassDB::bind_method(D_METHOD("get_num_subsongs"), &AudioStreamMPT::get_num_subsongs);
+
+	ClassDB::bind_method(D_METHOD("get_order_names"), &AudioStreamMPT::get_order_names);
+	ClassDB::bind_method(D_METHOD("get_order_pattern", "order"), &AudioStreamMPT::get_order_pattern);
+
+	ClassDB::bind_method(D_METHOD("get_pattern_names"), &AudioStreamMPT::get_pattern_names);
+	ClassDB::bind_method(D_METHOD("get_pattern_num_rows", "pattern"), &AudioStreamMPT::get_pattern_num_rows);
+
+	ClassDB::bind_method(D_METHOD("get_sample_names"), &AudioStreamMPT::get_sample_names);
+	ClassDB::bind_method(D_METHOD("get_subsong_names"), &AudioStreamMPT::get_subsong_names);
 
 	ClassDB::bind_method(D_METHOD("get_module_error"), &AudioStreamMPT::get_module_error);
 

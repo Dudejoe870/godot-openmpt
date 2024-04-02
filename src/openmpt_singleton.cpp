@@ -14,7 +14,7 @@ TypedArray<String> OpenMPT::get_supported_extensions() const {
 	TypedArray<String> result;
 	std::vector<std::string> extensions = openmpt::get_supported_extensions();
 	for (std::string ext : extensions)
-		result.push_back(String(ext.c_str()));
+		result.push_back(ext.c_str());
 	return result;
 }
 

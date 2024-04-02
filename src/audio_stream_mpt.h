@@ -7,6 +7,7 @@
 #include <godot_cpp/templates/vector.hpp>
 
 #include <libopenmpt/libopenmpt.hpp>
+#include <libopenmpt/libopenmpt_ext.hpp>
 
 using namespace godot;
 
@@ -16,7 +17,10 @@ class AudioStreamPlaybackMPT : public AudioStreamPlayback {
     GDCLASS(AudioStreamPlaybackMPT, AudioStreamPlayback);
 private:
 	Ref<AudioStreamMPT> base;
-	openmpt::module *mpt_module = nullptr;
+	openmpt::module_ext *mpt_module = nullptr;
+	openmpt::ext::interactive  *mpt_interactive = nullptr;
+	openmpt::ext::interactive2 *mpt_interactive2 = nullptr;
+	openmpt::ext::interactive3 *mpt_interactive3 = nullptr;
 
 	bool active = false;
 
@@ -35,10 +39,65 @@ public:
 	virtual void _seek(double p_time) override;
 	void seek(int32_t p_order_position, int32_t p_row);
 
-	int32_t get_order_position();
-	int32_t get_current_row();
+	bool is_module_loaded() const;
+	bool is_interactive_supported() const;
+	bool is_interactive2_supported() const;
+	bool is_interactive3_supported() const;
 
-	int32_t get_current_pattern();
+	float get_current_channel_vu_left(int32_t channel) const;
+	float get_current_channel_vu_mono(int32_t channel) const;
+	float get_current_channel_vu_rear_left(int32_t channel) const;
+	float get_current_channel_vu_rear_right(int32_t channel) const;
+	float get_current_channel_vu_right(int32_t channel) const;
+
+	double get_current_estimated_bpm() const;
+
+	int32_t get_current_order() const;
+	void set_current_order(int32_t order);
+
+	int32_t get_current_pattern() const;
+	int32_t get_current_playing_channels() const;
+
+	int32_t get_current_row() const;
+	void set_current_row(int32_t row) const;
+
+	void select_subsong(int32_t subsong);
+	int32_t get_selected_subsong() const;
+
+	void set_current_speed(int32_t speed);
+	int32_t get_current_speed() const;
+
+	void set_current_tempo(double tempo);
+	double get_current_tempo() const;
+
+	void set_tempo_factor(double factor);
+	double get_tempo_factor() const;
+
+	void set_pitch_factor(double factor);
+	double get_pitch_factor() const;
+
+	void set_global_volume(double volume);
+	double get_global_volume() const;
+
+	void set_channel_volume(int32_t channel, double volume);
+	double get_channel_volume(int32_t channel) const;
+
+	void set_channel_mute_status(int32_t channel, bool mute);
+	bool get_channel_mute_status(int32_t channel) const;
+
+	void set_instrument_mute_status(int32_t instrument, bool mute);
+	bool get_instrument_mute_status(int32_t instrument) const;
+
+	int32_t play_note(int32_t instrument, int32_t note, double volume, double panning);
+	void stop_note(int32_t channel);
+	void note_off(int32_t channel);
+	void note_fade(int32_t channel);
+	
+	void set_channel_panning(int32_t channel, double panning);
+	double get_channel_panning(int32_t channel) const;
+
+	void set_note_finetune(int32_t channel, double finetune);
+	double get_note_finetune(int32_t channel) const;
 
 	virtual int32_t _mix(AudioFrame *p_buffer, double p_rate_scale, int32_t p_frames) override;
 
@@ -58,8 +117,8 @@ private:
 	bool stereo = true;
 	PackedByteArray data;
 
-	// We need to create a module to parse some information about the file
-	// otherwise we would only need one in the Playback class.
+	// We need to create a module to parse any information about the file,
+	// otherwise we would only need to have one in the Playback class.
 	openmpt::module *mpt_module = nullptr;
 
 	Vector<AudioStreamPlaybackMPT*> open_playback_objects;
@@ -81,6 +140,33 @@ public:
 
 	void set_data(const PackedByteArray& p_data);
 	const PackedByteArray& get_data() const;
+
+	TypedArray<String> get_channel_names() const;
+	TypedArray<String> get_instrument_names() const;
+
+	TypedArray<String> get_metadata_keys() const;
+	String get_metadata(String key) const;
+	Dictionary get_all_metadata() const;
+
+	double get_estimated_bpm() const;
+	int32_t get_speed() const;
+	double get_tempo() const;
+
+	int32_t get_num_channels() const;
+	int32_t get_num_instruments() const;
+	int32_t get_num_orders() const;
+	int32_t get_num_patterns() const;
+	int32_t get_num_samples() const;
+	int32_t get_num_subsongs() const;
+	
+	TypedArray<String> get_order_names() const;
+	int32_t get_order_pattern(int32_t order) const;
+
+	TypedArray<String> get_pattern_names() const;
+	int32_t get_pattern_num_rows(int32_t pattern) const;
+
+	TypedArray<String> get_sample_names() const;
+	TypedArray<String> get_subsong_names() const;
 
 	Error get_module_error() const;
 
