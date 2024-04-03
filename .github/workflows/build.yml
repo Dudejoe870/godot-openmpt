@@ -1,3 +1,5 @@
+name: Build
+
 on:
   workflow_dispatch:
   push:
@@ -13,7 +15,10 @@ jobs:
     strategy:
       matrix:
         build-type: [Release, Debug]
-        compilers: [ { cc: "gcc", cxx: "g++", mingw: 'false' }, { cc: "x86_64-w64-mingw32-gcc", cxx: "x86_64-w64-mingw32-g++", mingw: 'true' } ]
+        compilers: [ 
+          { cc: "gcc", cxx: "g++", mingw: 'false' }, 
+          { cc: "x86_64-w64-mingw32-gcc", cxx: "x86_64-w64-mingw32-g++", mingw: 'true' } 
+        ]
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4.1.2
@@ -29,7 +34,7 @@ jobs:
       uses: actions/cache/restore@v4.0.2
       with:
         path: ${{ github.workspace }}/godot-cpp
-        key: ${{ matrix.compilers.cxx }}-${{ hashFiles('.gitmodules') }}-${{ matrix.build-type }}
+        key: ${{ matrix.compilers.cc }}-${{ hashFiles('.gitmodules') }}-${{ matrix.build-type }}
 
     - name: Update submodules
       if: steps.cache-godot-restore.outputs.cache-hit != 'true'
@@ -41,7 +46,7 @@ jobs:
       uses: lukka/get-cmake@latest
 
     - name: Build godot-cpp
-      if: steps.cache-godot-restore.outputs.cache-hit != 'true'
+      if: steps.cache-godot-restore.outputs.cache-hit != 'true' && matrix.compilers.mingw != 'true'
       uses: ashutoshvarma/action-cmake-build@master
       with:
         source-dir: ${{ github.workspace }}/godot-cpp
@@ -51,13 +56,22 @@ jobs:
         configure-options: -G Ninja
         build-type: ${{ matrix.build-type }}
 
+    - name: Build godot-cpp MinGW
+      if: steps.cache-godot-restore.outputs.cache-hit != 'true' && matrix.compilers.mingw == 'true'
+      uses: ashutoshvarma/action-cmake-build@master
+      with:
+        source-dir: ${{ github.workspace }}/godot-cpp
+        build-dir: ${{ github.workspace }}/godot-cpp/build
+        cc: ${{ matrix.compilers.cc }}
+        cxx: ${{ matrix.compilers.cxx }}
+        configure-options: -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_FIND_ROOT_PATH=/usr/x86_64-w64-mingw32 -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY -G Ninja
+        build-type: ${{ matrix.build-type }}
+
     - name: Setup godot-cpp Environment
       if: steps.cache-godot-restore.outputs.cache-hit != 'true'
       run: |
-        mkdir "${{ github.workspace }}/godot-cpp/bin"
-        mkdir "${{ github.workspace }}/godot-cpp/gen"
-        cp -r "${{ github.workspace }}/godot-cpp/build/bin" "${{ github.workspace }}/godot-cpp/bin"
-        cp -r "${{ github.workspace }}/godot-cpp/build/gen" "${{ github.workspace }}/godot-cpp/gen"
+        cp -r "${{ github.workspace }}/godot-cpp/build/bin" "${{ github.workspace }}/godot-cpp"
+        cp -r "${{ github.workspace }}/godot-cpp/build/gen" "${{ github.workspace }}/godot-cpp"
 
     - name: Save godot-cpp
       id: cache-godot-save
@@ -67,6 +81,7 @@ jobs:
         key: ${{ steps.cache-godot-restore.outputs.cache-primary-key }}
 
     - name: Build with CMake
+      if: matrix.compilers.mingw != 'true'
       uses: ashutoshvarma/action-cmake-build@master
       with:
         build-dir: ${{ github.workspace }}/build
@@ -74,9 +89,62 @@ jobs:
         cxx: ${{ matrix.compilers.cxx }}
         configure-options: -G Ninja
         build-type: ${{ matrix.build-type }}
+
+    - name: Build with CMake MinGW
+      if: matrix.compilers.mingw == 'true'
+      uses: ashutoshvarma/action-cmake-build@master
+      with:
+        build-dir: ${{ github.workspace }}/build
+        cc: ${{ matrix.compilers.cc }}
+        cxx: ${{ matrix.compilers.cxx }}
+        configure-options: -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_FIND_ROOT_PATH=/usr/x86_64-w64-mingw32 -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY -G Ninja
+        build-type: ${{ matrix.build-type }}
     
-    - name: Upload Addon Artifact
-      uses: actions/upload-artifact@v4.3.1
+    - name: Upload Built Library Artifact
+      # We use v3 of both upload and download artifact for ACT compatibility
+      uses: actions/upload-artifact@v3.1.3
+      with:
+        path: ${{ github.workspace }}/addons/godot-openmpt/bin/*
+        name: bin-${{ matrix.compilers.cc }}-${{ matrix.build-type }}
+  package:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4.1.2
+
+    - name: Extract Linux Debug
+      uses: actions/download-artifact@v3.0.2
+      # In the case of ACT, it may be that we just ran it with a subset matrix and not the full one.
+      # So it's okay if some of these fail.
+      continue-on-error: ${{ env.ACT && 'true' || 'false' }}
+      with:
+        name: bin-gcc-Debug
+        path: ${{ github.workspace }}/addons/godot-openmpt/bin
+    
+    - name: Extract Windows Debug
+      uses: actions/download-artifact@v3.0.2
+      continue-on-error: ${{ env.ACT && 'true' || 'false' }}
+      with:
+        name: bin-x86_64-w64-mingw32-gcc-Debug
+        path: ${{ github.workspace }}/addons/godot-openmpt/bin
+    
+    - name: Extract Linux Release
+      uses: actions/download-artifact@v3.0.2
+      continue-on-error: ${{ env.ACT && 'true' || 'false' }}
+      with:
+        name: bin-gcc-Release
+        path: ${{ github.workspace }}/addons/godot-openmpt/bin
+    
+    - name: Extract Windows Release
+      uses: actions/download-artifact@v3.0.2
+      continue-on-error: ${{ env.ACT && 'true' || 'false' }}
+      with:
+        name: bin-x86_64-w64-mingw32-gcc-Release
+        path: ${{ github.workspace }}/addons/godot-openmpt/bin
+
+    - name: Package Output Addon Artifact
+      uses: actions/upload-artifact@v3.1.3
       with:
         path: ${{ github.workspace }}/addons
-        name: godot-openmpt-addon
+        name: godot-openmpt-${{ github.ref_name }}-${{ github.sha }}
