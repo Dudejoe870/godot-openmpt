@@ -1,0 +1,80 @@
+on:
+  push:
+    branches: [ $default-branch ]
+  pull_request:
+    branches: [ $default-branch ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build-type: [Release, Debug]
+        compilers:
+          - { cc: "gcc", cxx: "g++", mingw: 'false' }
+          - { cc: "x86_64-w64-mingw32-gcc", cxx: "x86_64-w64-mingw32-g++", mingw: 'true' }
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4.1.2
+    
+    - name: Install MinGW
+      if: matrix.compilers.mingw == 'true'
+      uses: egor-tensin/setup-mingw@v2.2.0
+      with:
+        cc: 0
+    
+    - name: Restore godot-cpp
+      id: cache-godot-restore
+      uses: actions/cache/restore@v4.0.2
+      with:
+        path: ${{ github.workspace }}/godot-cpp
+        key: ${{ matrix.compilers.cxx }}-${{ hashFiles('.gitmodules') }}-${{ matrix.build-type }}
+
+    - name: Update submodules
+      if: steps.cache-godot-restore.outputs.cache-hit != 'true'
+      uses: actions/checkout@v4.1.2
+      with:
+        submodules: recursive
+
+    - name: Install CMake
+      uses: lukka/get-cmake@latest
+
+    - name: Build godot-cpp
+      if: steps.cache-godot-restore.outputs.cache-hit != 'true'
+      uses: ashutoshvarma/action-cmake-build@master
+      with:
+        source-dir: ${{ github.workspace }}/godot-cpp
+        build-dir: ${{ github.workspace }}/godot-cpp/build
+        cc: ${{ matrix.compilers.cc }}
+        cxx: ${{ matrix.compilers.cxx }}
+        configure-options: -G Ninja
+        build-type: ${{ matrix.build-type }}
+
+    - name: Setup godot-cpp Environment
+      if: steps.cache-godot-restore.outputs.cache-hit != 'true'
+      run:
+        mkdir "${{ github.workspace }}/godot-cpp/bin"
+        mkdir "${{ github.workspace }}/godot-cpp/gen"
+        cp -r "${{ github.workspace }}/godot-cpp/build/bin" "${{ github.workspace }}/godot-cpp/bin"
+        cp -r "${{ github.workspace }}/godot-cpp/build/gen" "${{ github.workspace }}/godot-cpp/gen"
+
+    - name: Save godot-cpp
+      id: cache-godot-save
+      uses: actions/cache/save@v4.0.2
+      with:
+        path: ${{ github.workspace }}/godot-cpp
+        key: ${{ steps.cache-godot-restore.outputs.cache-primary-key }}
+
+    - name: Build with CMake
+      uses: ashutoshvarma/action-cmake-build@master
+      with:
+        build-dir: ${{ github.workspace }}/build
+        cc: ${{ matrix.compilers.cc }}
+        cxx: ${{ matrix.compilers.cxx }}
+        configure-options: -G Ninja
+        build-type: ${{ matrix.build-type }}
+    
+    - name: Upload Addon Artifact
+      uses: actions/upload-artifact@v4.3.1
+      with:
+        path: ${{ github.workspace }}/addons
