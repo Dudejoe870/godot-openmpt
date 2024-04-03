@@ -104,10 +104,10 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 else()
 	set(GODOT_LINKER_FLAGS "-static-libgcc -static-libstdc++ -Wl,-R,'$$ORIGIN'")
 
-	set(GODOT_COMPILE_FLAGS "-fPIC -g -Wwrite-strings -fexceptions -frtti -pthread")
+	set(GODOT_COMPILE_FLAGS "-fPIC -fvisibility=hidden -fvisibility-inlines-hidden -fexceptions -frtti -pthread")
 
 	if(CMAKE_BUILD_TYPE MATCHES Debug)
-		set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} -fno-omit-frame-pointer -O0")
+		set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} -g -fno-omit-frame-pointer -O0")
 	else()
 		set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} -O3")
 	endif()
