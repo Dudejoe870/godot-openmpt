@@ -1,4 +1,5 @@
 on:
+  workflow_dispatch:
   push:
     branches: [ $default-branch ]
   pull_request:
@@ -10,9 +11,7 @@ jobs:
     strategy:
       matrix:
         build-type: [Release, Debug]
-        compilers:
-          - { cc: "gcc", cxx: "g++", mingw: 'false' }
-          - { cc: "x86_64-w64-mingw32-gcc", cxx: "x86_64-w64-mingw32-g++", mingw: 'true' }
+        compilers: [ { cc: "gcc", cxx: "g++", mingw: 'false' }, { cc: "x86_64-w64-mingw32-gcc", cxx: "x86_64-w64-mingw32-g++", mingw: 'true' } ]
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4.1.2
@@ -78,3 +77,4 @@ jobs:
       uses: actions/upload-artifact@v4.3.1
       with:
         path: ${{ github.workspace }}/addons
+        name: godot-openmpt-addon
