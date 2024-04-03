@@ -362,15 +362,6 @@ void AudioStreamPlaybackMPT::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_note_finetune", "channel", "finetune"), &AudioStreamPlaybackMPT::set_note_finetune);
 	ClassDB::bind_method(D_METHOD("get_note_finetune", "channel"), &AudioStreamPlaybackMPT::get_note_finetune);
-
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "subsong"), "select_subsong", "get_selected_subsong");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "current_order"), "set_current_order", "get_current_order");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "current_row"), "set_current_row", "get_current_row");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "speed"), "set_current_speed", "get_current_speed");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "tempo"), "set_current_tempo", "get_current_tempo");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "tempo_factor"), "set_tempo_factor", "get_tempo_factor");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "pitch_factor"), "set_pitch_factor", "get_pitch_factor");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "global_volume"), "set_global_volume", "get_global_volume");
 }
 
 AudioStreamPlaybackMPT::AudioStreamPlaybackMPT() {}
