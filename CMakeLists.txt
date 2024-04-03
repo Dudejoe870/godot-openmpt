@@ -124,7 +124,7 @@ set_property(TARGET libopenmpt APPEND_STRING PROPERTY LINK_FLAGS ${GODOT_LINKER_
 # Comment this out and compile if you really need to debug what libopenmpt is doing 
 # (you probably don't)
 if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" AND CMAKE_BUILD_TYPE MATCHES Debug)
-	set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS "-g")
+	set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS " -g")
 endif()
 
 # Create the correct name (godot.os.build_type.system_bits)
