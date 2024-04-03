@@ -1,9 +1,11 @@
 on:
   workflow_dispatch:
   push:
-    branches: [ $default-branch ]
+    branches:
+      - 'main'
   pull_request:
-    branches: [ $default-branch ]
+    branches:
+      - 'main'
 
 jobs:
   build:
@@ -51,7 +53,7 @@ jobs:
 
     - name: Setup godot-cpp Environment
       if: steps.cache-godot-restore.outputs.cache-hit != 'true'
-      run:
+      run: |
         mkdir "${{ github.workspace }}/godot-cpp/bin"
         mkdir "${{ github.workspace }}/godot-cpp/gen"
         cp -r "${{ github.workspace }}/godot-cpp/build/bin" "${{ github.workspace }}/godot-cpp/bin"
