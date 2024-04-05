@@ -10,7 +10,15 @@ Because my game uses mod-tracker music inspired by Deus-Ex, and it also makes lo
 
 Just go to the prebuilt branch and use the download ZIP feature of Github, extract it into your project and you're done!
 
+If you want to take a look at a commit that's more recent, then you can download the addon as a CI build artifact from the Github workflow action.
+
 Unfortunately there are no MacOS, Android, iOS, or any 32-bit binaries currently prebuilt. If you need any of those you will have to build them yourself (and in the case of mobile platforms, add them to the .gdextension file)
+
+## Documentation
+
+For information on what functions you can use either look at the source code, or look at the in-editor docs for the types `AudioStreamMPT` and `AudioStreamPlaybackMPT`.
+
+There is no offical written documentation for the time being, but just the function names and parameter names should most likely be helpful enough; and if you know any amount of C++, the code should be pretty easy to parse.
 
 ## What platforms does it support?
 
@@ -20,31 +28,34 @@ As for mobile platforms, I haven't tested them either because I don't make mobil
 
 ## How to build
 
-This project uses CMake so it's recommended to use that (even for building godot-cpp as the DLL names are different and I had issues mixing SCons and CMake before).
+This project uses CMake so it's recommended to use that (even for building godot-cpp as the library names are different and I had issues mixing SCons and CMake before).
 
-It has been tested on Windows and Linux (via Ubuntu WSL on Clang). MacOS might work but you're on your own (at least for now), open an issue if it has any problems and I'll try to address them or you can address them yourself in a PR (probably easier if you can, since I can't test things without a Mac).
+It has been tested on Windows and Linux. MacOS might work but you're on your own (at least for now), open an issue if it has any problems and I'll try to address them or you can address them yourself in a PR (probably easier if you can, since I can't test things without a Mac).
 
-I recommend using Visual Studio 2022 and its CMake integration.
+### godot-cpp (both platforms)
+
+If you're on Windows, you'll still want to use CMake from the terminal and not from Visual Studio like recommended below.
+
+Open the `custom-godotcpp-build` directory in the terminal. Here we'll use CMake with this as the source *and* the binary directory (this is required for the main build script to work).
+
+There is an optional define called `GENERATE_DEBUG_SYMBOLS`, this is the reason we need a custom build script in the first place. 
+If you're developing and ran into an error in GodotCPP, feel free to turn it on, but if you're just building this for any other reason define it to be `OFF` (`-DGENERATE_DEBUG_SYMBOLS=OFF`).
+Otherwise, the binaries will end up being pretty big (perhaps so big that Github won't even let you push the files anymore!), so use with caution.
+
+If you want to build both `Release` and `Debug` versions you'll have to define the `CMAKE_BUILD_TYPE`, then delete all the extra CMake generated files (other than the `bin` and `gen` directories)
+then define `CMAKE_BUILD_TYPE` again as the opposite value. This will generate both required libraries for `Release` and `Debug`.
 
 ## Windows Build Instructions
 
-### godot-cpp
+### Requirements
 
-Open the `godot-cpp` subdirectory in Visual Studio 2022 and build the project in the `x64-Debug` default configuration. (May take a while)
-
-Now create a configuration for `x64-Release` and build it in that too (you may have to do a full rebuild). (May take a little longer)
-
-Now in the `out/build` folder you should have two directories for each config.
-
-Go into the `bin` folder of each and copy the libraries to a new `bin` folder at the root of the `godot-cpp` subdirectory.
-
-Also copy the `gen` folder from one of the folders into the root of the `godot-cpp` subdirectory.
+I recommend using Visual Studio 2022 and its CMake integration.
 
 ### The Addon
 
 Open the root repository directory in Visual Studio 2022 and build it in `x64-Debug`.
 
-Create a configuration for `x64-Release` just like before and build that as well.
+Create a configuration for `x64-Release` setting the build type appropriately in the panel, build that as well.
 
 After this is done you will have both `.dll`s in the `bin` directory of the addon folder.
 
@@ -52,22 +63,12 @@ After this is done you will have both `.dll`s in the `bin` directory of the addo
 
 ### Requirements
 
-You will need `cmake`, either the `gcc` toolchain or the `clang`/`llvm` toolchain. Also recommended is `ninja-build` for the build system.
-
-### godot-cpp
-
-Open the `godot-cpp` subdirectory in a terminal, run `cmake . -B build`. If you are using ninja add `-G Ninja`, also if you wish to build for debug / the editor add `-DCMAKE_BUILD_TYPE=Debug`
-(If you want both Debug and Release you will have to do these instructions two times, one with the Debug flag, and one without).
-
-`cd build`, then run your build system. In this case, `ninja`.
-
-Copy the `.a` file(s) from the `bin` directory of the `build` subdirectory to a new `bin` directory at the root of the `godot-cpp` directory.
-
-Also copy the `gen` directory to the root of the `godot-cpp` directory.
+You will need `cmake`, either the `gcc` toolchain or the `clang`/`llvm` toolchain (this is actually relatively untested as of the latest buildsystem changes, so it may or may not work with Clang anymore). 
+Also recommended is `ninja-build` for the build system.
 
 ### The Addon
 
-Now change to the root repository directory. Run cmake just like before, in this case `cmake . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug`,
+Run CMake in the root repository directory, in this case `cmake . -B build -G Ninja -DCMAKE_BUILD_TYPE=<INSERT EITHER Release OR Debug HERE>`,
 then `cd build && ninja`.
 
 After this is done you will have a `.so` file(s) in the `bin` directory of the addon folder.
@@ -75,9 +76,7 @@ After this is done you will have a `.so` file(s) in the `bin` directory of the a
 ## After Build
 
 Now you're pretty much done, just copy the addon directory to your Godot project, reload it if you have it open, enable the importer plugin and boom.
-You now can play your mod-tracker formats as a regular audio stream (and even manipulate the playback of them a little too).
-
-For more information on what functions you can use either look at the source code, or look at the in-editor docs for the types `AudioStreamMPT` and `AudioStreamPlaybackMPT`.
+You now can play your mod-tracker formats as a regular audio stream (and even manipulate the playback of them quite a lot).
 
 ## Problems?
 
