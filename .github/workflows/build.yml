@@ -33,7 +33,10 @@ jobs:
       id: cache-godot-restore
       uses: actions/cache/restore@v4.0.2
       with:
-        path: ${{ github.workspace }}/godot-cpp
+        path: |
+          ${{ github.workspace }}/godot-cpp/gdextension
+          ${{ github.workspace }}/godot-cpp/include
+          ${{ github.workspace }}/custom-godotcpp-build
         key: ${{ matrix.compilers.cc }}-${{ hashFiles('.gitmodules') }}-${{ matrix.build-type }}
 
     - name: Update submodules
@@ -49,8 +52,8 @@ jobs:
       if: steps.cache-godot-restore.outputs.cache-hit != 'true' && matrix.compilers.mingw != 'true'
       uses: ashutoshvarma/action-cmake-build@master
       with:
-        source-dir: ${{ github.workspace }}/godot-cpp
-        build-dir: ${{ github.workspace }}/godot-cpp/build
+        source-dir: ${{ github.workspace }}/custom-godotcpp-build
+        build-dir: ${{ github.workspace }}/custom-godotcpp-build
         cc: ${{ matrix.compilers.cc }}
         cxx: ${{ matrix.compilers.cxx }}
         configure-options: -G Ninja
@@ -60,24 +63,21 @@ jobs:
       if: steps.cache-godot-restore.outputs.cache-hit != 'true' && matrix.compilers.mingw == 'true'
       uses: ashutoshvarma/action-cmake-build@master
       with:
-        source-dir: ${{ github.workspace }}/godot-cpp
-        build-dir: ${{ github.workspace }}/godot-cpp/build
+        source-dir: ${{ github.workspace }}/custom-godotcpp-build
+        build-dir: ${{ github.workspace }}/custom-godotcpp-build
         cc: ${{ matrix.compilers.cc }}
         cxx: ${{ matrix.compilers.cxx }}
-        configure-options: -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_FIND_ROOT_PATH=/usr/x86_64-w64-mingw32 -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY -G Ninja
+        configure-options: -DGENERATE_DEBUG_SYMBOLS=OFF -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_FIND_ROOT_PATH=/usr/x86_64-w64-mingw32 -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY -G Ninja
         build-type: ${{ matrix.build-type }}
-
-    - name: Setup godot-cpp Environment
-      if: steps.cache-godot-restore.outputs.cache-hit != 'true'
-      run: |
-        cp -r "${{ github.workspace }}/godot-cpp/build/bin" "${{ github.workspace }}/godot-cpp"
-        cp -r "${{ github.workspace }}/godot-cpp/build/gen" "${{ github.workspace }}/godot-cpp"
 
     - name: Save godot-cpp
       id: cache-godot-save
       uses: actions/cache/save@v4.0.2
       with:
-        path: ${{ github.workspace }}/godot-cpp
+        path: |
+          ${{ github.workspace }}/godot-cpp/gdextension
+          ${{ github.workspace }}/godot-cpp/include
+          ${{ github.workspace }}/custom-godotcpp-build
         key: ${{ steps.cache-godot-restore.outputs.cache-primary-key }}
 
     - name: Build with CMake

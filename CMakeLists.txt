@@ -1,12 +1,20 @@
-project(godot-openmpt)
+# WARNING:
+# This build system is already a mess... CMake is horrible.
+# The problem is that I really don't want the binaries to be more that 100MB
+# And apparently CMake insists on making the binary (through hidden compile flags)
+# over 100MB. If I don't do anything at all that goes for both Debug AND Release.
+# Hopefully this won't need much modification into the future.
+
 cmake_minimum_required(VERSION 3.6)
+project(godot-openmpt)
 
 set(CMAKE_STATIC_LIBRARY_PREFIX "")
 set(CMAKE_SHARED_LIBRARY_PREFIX "")
 
 set(GODOT_GDEXTENSION_DIR godot-cpp/gdextension/ CACHE STRING "Path to GDExtension interface header directory")
 set(CPP_BINDINGS_PATH godot-cpp/ CACHE STRING "Path to C++ bindings")
-set(GODOT_LIB_PATH ${CPP_BINDINGS_PATH}/bin CACHE STRING "Path to the built Godot C++ libraries")
+set(GODOT_LIB_PATH custom-godotcpp-build/bin CACHE STRING "Path to the built Godot C++ libraries")
+set(GODOT_GEN_INCLUDE_PATH custom-godotcpp-build/gen/include CACHE STRING "Path to generated Godot includes")
 
 # Change the output directory to the bin directory
 set(BUILD_PATH ${CMAKE_SOURCE_DIR}/bin)
@@ -68,7 +76,7 @@ add_library(${PROJECT_NAME} SHARED
 target_include_directories(${PROJECT_NAME} SYSTEM
 	PRIVATE
 		${CPP_BINDINGS_PATH}/include
-		${CPP_BINDINGS_PATH}/gen/include
+		${GODOT_GEN_INCLUDE_PATH}
 		${GODOT_GDEXTENSION_DIR}
 )
 
@@ -102,13 +110,16 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 			_WIN32_WINNT=0x0A00
 			NTDDI_VERSION=0x0A00000A)
 else()
-	set(GODOT_LINKER_FLAGS "-static-libgcc -static-libstdc++ -Wl,-R,'$$ORIGIN'")
+	# STOP adding -g when I DON'T WANT -g!!!
+	set(CMAKE_CXX_FLAGS_DEBUG "")
+	set(CMAKE_C_FLAGS_DEBUG "")
 
-	set(GODOT_COMPILE_FLAGS "-fPIC -fvisibility=hidden -fvisibility-inlines-hidden -fexceptions -frtti -pthread")
+	set(GODOT_LINKER_FLAGS "-Wl,--gc-sections,-R,'$$ORIGIN'")
 
-	if(CMAKE_BUILD_TYPE MATCHES Debug)
-		set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} -fno-omit-frame-pointer -O0")
-	else()
+	set(CMAKE_RANLIB "gcc-ranlib")
+	set(GODOT_COMPILE_FLAGS "-fPIC -flto -fvisibility=hidden -fvisibility-inlines-hidden -ffunction-sections -fdata-sections -fexceptions -frtti -pthread")
+
+	if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
 		set(GODOT_COMPILE_FLAGS "${GODOT_COMPILE_FLAGS} -O3")
 	endif()
 endif()
@@ -119,12 +130,17 @@ set_property(TARGET libopenmpt APPEND_STRING PROPERTY COMPILE_FLAGS ${GODOT_COMP
 set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY LINK_FLAGS ${GODOT_LINKER_FLAGS})
 set_property(TARGET libopenmpt APPEND_STRING PROPERTY LINK_FLAGS ${GODOT_LINKER_FLAGS})
 
-# Only generate debug symbols for the main extension... NOT libopenmpt. 
-# Otherwise the binary sizes will be out of control. 
-# Comment this out and compile if you really need to debug what libopenmpt is doing 
-# (you probably don't)
 if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" AND CMAKE_BUILD_TYPE MATCHES Debug)
-	set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS " -g")
+	
+
+	# Only generate debug symbols for the main extension... NOT libopenmpt. 
+	# Otherwise the binary sizes will be out of control. 
+	# Comment this out and compile if you really need to debug what libopenmpt is doing 
+	# (you probably don't)
+	#set_property(TARGET libopenmpt APPEND_STRING PROPERTY COMPILE_FLAGS "-fno-omit-frame-pointer -O0 -g")
+	set_property(TARGET libopenmpt APPEND_STRING PROPERTY COMPILE_FLAGS " -O3") # If we don't want debug symbols, may as well -O3
+
+	set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS " -fno-omit-frame-pointer -O0 -g")
 endif()
 
 # Create the correct name (godot.os.build_type.system_bits)

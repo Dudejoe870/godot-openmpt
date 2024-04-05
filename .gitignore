@@ -2,6 +2,9 @@
 build
 bin
 
+custom-godotcpp-build/*
+!custom-godotcpp-build/CMakeLists.txt
+
 # Godot 4+ specific ignores
 .godot/
 
