@@ -36,7 +36,7 @@ Now create a configuration for `x64-Release` and build it in that too (you may h
 
 Now in the `out/build` folder you should have two directories for each config.
 
-Go into the `bin` folder of each and copy the DLLs to a new `bin` folder at the root of the `godot-cpp` subdirectory.
+Go into the `bin` folder of each and copy the libraries to a new `bin` folder at the root of the `godot-cpp` subdirectory.
 
 Also copy the `gen` folder from one of the folders into the root of the `godot-cpp` subdirectory.
 
@@ -61,7 +61,7 @@ Open the `godot-cpp` subdirectory in a terminal, run `cmake . -B build`. If you 
 
 `cd build`, then run your build system. In this case, `ninja`.
 
-Copy the `.so` file(s) from the `bin` directory of the `build` subdirectory to a new `bin` directory at the root of the `godot-cpp` directory.
+Copy the `.a` file(s) from the `bin` directory of the `build` subdirectory to a new `bin` directory at the root of the `godot-cpp` directory.
 
 Also copy the `gen` directory to the root of the `godot-cpp` directory.
 
