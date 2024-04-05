@@ -4,7 +4,7 @@ These are bindings for [libopenmpt](https://github.com/OpenMPT/openmpt/tree/mast
 
 ## Why?
 
-Because my game uses mod-tracker music inspired by Deus-Ex, and it also makes looping and dynamic music easier (haven't implemented channel muting and stuff yet but it should be trivial to implement)
+Because my game uses mod-tracker music inspired by Deus-Ex, and it also makes looping and dynamic music easier.
 
 ## Where can I find a pre-built addon?
 
