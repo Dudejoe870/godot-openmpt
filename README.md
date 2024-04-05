@@ -18,7 +18,7 @@ Unfortunately there are no MacOS, Android, iOS, or any 32-bit binaries currently
 
 For information on what functions you can use either look at the source code, or look at the in-editor docs for the types `AudioStreamMPT` and `AudioStreamPlaybackMPT`.
 
-There is no offical written documentation for the time being, but just the function names and parameter names should most likely be helpful enough; and if you know any amount of C++, the code should be pretty easy to parse.
+There is no official written documentation for the time being, but just the function names and parameter names should most likely be helpful enough; and if you know any amount of C++, the code should be pretty easy to parse.
 
 ## What platforms does it support?
 
