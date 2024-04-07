@@ -457,6 +457,16 @@ const PackedByteArray& AudioStreamMPT::get_data() const {
 	return this->data;
 }
 
+void AudioStreamMPT::select_subsong(int32_t subsong) {
+	CHECK_MOD_LOADED_RETV();
+	this->mpt_module->select_subsong(subsong);
+}
+
+int32_t AudioStreamMPT::get_selected_subsong() const {
+	CHECK_MOD_LOADED_RET(0);
+	return this->mpt_module->get_selected_subsong();
+}
+
 TypedArray<String> AudioStreamMPT::get_channel_names() const {
 	CHECK_MOD_LOADED_RET(TypedArray<String>());
 	TypedArray<String> result;
@@ -582,6 +592,31 @@ TypedArray<String> AudioStreamMPT::get_subsong_names() const {
 	return result;
 }
 
+uint8_t AudioStreamMPT::get_pattern_row_channel_command(int32_t pattern, int32_t row, int32_t channel, CommandIndex command) const {
+	CHECK_MOD_LOADED_RET(0);
+	return this->mpt_module->get_pattern_row_channel_command(pattern, row, channel, (int)command);
+}
+
+String AudioStreamMPT::format_pattern_row_channel_command(int32_t pattern, int32_t row, int32_t channel, CommandIndex command) const {
+	CHECK_MOD_LOADED_RET("");
+	return this->mpt_module->format_pattern_row_channel_command(pattern, row, channel, (int)command).c_str();
+}
+
+String AudioStreamMPT::highlight_pattern_row_channel_command(int32_t pattern, int32_t row, int32_t channel, CommandIndex command) const {
+	CHECK_MOD_LOADED_RET("");
+	return this->mpt_module->highlight_pattern_row_channel_command(pattern, row, channel, (int)command).c_str();
+}
+
+String AudioStreamMPT::format_pattern_row_channel(int32_t pattern, int32_t row, int32_t channel, int64_t width, bool pad) const {
+	CHECK_MOD_LOADED_RET("");
+	return this->mpt_module->format_pattern_row_channel(pattern, row, channel, (size_t)width, pad).c_str();
+}
+
+String AudioStreamMPT::highlight_pattern_row_channel(int32_t pattern, int32_t row, int32_t channel, int64_t width, bool pad) const {
+	CHECK_MOD_LOADED_RET("");
+	return this->mpt_module->highlight_pattern_row_channel(pattern, row, channel, (size_t)width, pad).c_str();
+}
+
 Error AudioStreamMPT::get_module_error() const {
 	return module_error;
 }
@@ -618,6 +653,9 @@ void AudioStreamMPT::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_data", "data"), &AudioStreamMPT::set_data);
 	ClassDB::bind_method(D_METHOD("get_data"), &AudioStreamMPT::get_data);
 
+	ClassDB::bind_method(D_METHOD("select_subsong", "subsong"), &AudioStreamMPT::select_subsong);
+	ClassDB::bind_method(D_METHOD("get_selected_subsong"), &AudioStreamMPT::get_selected_subsong);
+	
 	ClassDB::bind_method(D_METHOD("get_channel_names"), &AudioStreamMPT::get_channel_names);
 	ClassDB::bind_method(D_METHOD("get_instrument_names"), &AudioStreamMPT::get_instrument_names);
 
@@ -645,6 +683,12 @@ void AudioStreamMPT::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_sample_names"), &AudioStreamMPT::get_sample_names);
 	ClassDB::bind_method(D_METHOD("get_subsong_names"), &AudioStreamMPT::get_subsong_names);
 
+	ClassDB::bind_method(D_METHOD("get_pattern_row_channel_command", "pattern", "row", "channel", "command"), &AudioStreamMPT::get_pattern_row_channel_command);
+	ClassDB::bind_method(D_METHOD("format_pattern_row_channel_command", "pattern", "row", "channel", "command"), &AudioStreamMPT::format_pattern_row_channel_command);
+	ClassDB::bind_method(D_METHOD("highlight_pattern_row_channel_command", "pattern", "row", "channel", "command"), &AudioStreamMPT::highlight_pattern_row_channel_command);
+	ClassDB::bind_method(D_METHOD("format_pattern_row_channel", "pattern", "row", "channel", "width", "pad"), &AudioStreamMPT::format_pattern_row_channel);
+	ClassDB::bind_method(D_METHOD("highlight_pattern_row_channel", "pattern", "row", "channel", "width", "pad"), &AudioStreamMPT::highlight_pattern_row_channel);
+
 	ClassDB::bind_method(D_METHOD("get_module_error"), &AudioStreamMPT::get_module_error);
 
 	ADD_PROPERTY(PropertyInfo(Variant::PACKED_BYTE_ARRAY, "data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR), "set_data", "get_data");
@@ -653,6 +697,13 @@ void AudioStreamMPT::_bind_methods() {
 
 	BIND_ENUM_CONSTANT(LOOP_DISABLED);
 	BIND_ENUM_CONSTANT(LOOP_ENABLED);
+	
+	BIND_ENUM_CONSTANT(COMMAND_NOTE);
+	BIND_ENUM_CONSTANT(COMMAND_INSTRUMENT); 
+	BIND_ENUM_CONSTANT(COMMAND_VOLUMEFFECT);
+	BIND_ENUM_CONSTANT(COMMAND_EFFECT);
+	BIND_ENUM_CONSTANT(COMMAND_VOLUME);
+	BIND_ENUM_CONSTANT(COMMAND_PARAMETER);
 }
 
 AudioStreamMPT::AudioStreamMPT() {

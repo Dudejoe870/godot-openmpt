@@ -114,8 +114,10 @@ else()
 	set(CMAKE_CXX_FLAGS_DEBUG "")
 	set(CMAKE_C_FLAGS_DEBUG "")
 
-	set(GODOT_LINKER_FLAGS "-static-libgcc -static-libstdc++ -Wl,--gc-sections,-R,'$$ORIGIN'")
+	set(GODOT_LINKER_FLAGS "-static-libgcc -static-libstdc++ -Wl,-flto,--gc-sections,-R,'$$ORIGIN'")
 
+  set(CMAKE_AR, "gcc-ar")
+  set(CMAKE_NM, "gcc-nm")
 	set(CMAKE_RANLIB "gcc-ranlib")
 	set(GODOT_COMPILE_FLAGS "-fPIC -flto -fvisibility=hidden -fvisibility-inlines-hidden -ffunction-sections -fdata-sections -fexceptions -frtti -pthread")
 

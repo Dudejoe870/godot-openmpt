@@ -112,6 +112,15 @@ public:
 		LOOP_DISABLED,
 		LOOP_ENABLED
 	};
+
+	enum CommandIndex {
+		COMMAND_NOTE = 0,
+		COMMAND_INSTRUMENT = 1, 
+		COMMAND_VOLUMEFFECT = 2,
+		COMMAND_EFFECT = 3,
+		COMMAND_VOLUME = 4,
+		COMMAND_PARAMETER = 5
+	};
 private:
 	LoopMode loop_mode = LoopMode::LOOP_DISABLED;
 	bool stereo = true;
@@ -158,6 +167,9 @@ public:
 	int32_t get_num_patterns() const;
 	int32_t get_num_samples() const;
 	int32_t get_num_subsongs() const;
+
+	void select_subsong(int32_t subsong);
+	int32_t get_selected_subsong() const;
 	
 	TypedArray<String> get_order_names() const;
 	int32_t get_order_pattern(int32_t order) const;
@@ -167,6 +179,12 @@ public:
 
 	TypedArray<String> get_sample_names() const;
 	TypedArray<String> get_subsong_names() const;
+
+	uint8_t get_pattern_row_channel_command(int32_t pattern, int32_t row, int32_t channel, CommandIndex command) const;
+	String format_pattern_row_channel_command(int32_t pattern, int32_t row, int32_t channel, CommandIndex command) const;
+	String highlight_pattern_row_channel_command(int32_t pattern, int32_t row, int32_t channel, CommandIndex command) const;
+	String format_pattern_row_channel(int32_t pattern, int32_t row, int32_t channel, int64_t width = 0, bool pad = true) const;
+	String highlight_pattern_row_channel(int32_t pattern, int32_t row, int32_t channel, int64_t width = 0, bool pad = true) const;
 
 	Error get_module_error() const;
 
@@ -178,5 +196,6 @@ public:
 };
 
 VARIANT_ENUM_CAST(AudioStreamMPT::LoopMode)
+VARIANT_ENUM_CAST(AudioStreamMPT::CommandIndex)
 
 #endif // AUDIO_STREAM_MPT_H
