@@ -107,26 +107,31 @@ void AudioStreamPlaybackMPT::set_current_row(int32_t row) const {
 
 float AudioStreamPlaybackMPT::get_current_channel_vu_left(int32_t channel) const {
 	CHECK_MOD_LOADED_RET(0.0f);
+	ERR_FAIL_INDEX_V(channel, this->mpt_module->get_num_channels(), 0.0f);
 	return this->mpt_module->get_current_channel_vu_left(channel);
 }
 
 float AudioStreamPlaybackMPT::get_current_channel_vu_mono(int32_t channel) const {
 	CHECK_MOD_LOADED_RET(0.0f);
+	ERR_FAIL_INDEX_V(channel, this->mpt_module->get_num_channels(), 0.0f);
 	return this->mpt_module->get_current_channel_vu_mono(channel);
 }
 
 float AudioStreamPlaybackMPT::get_current_channel_vu_rear_left(int32_t channel) const {
 	CHECK_MOD_LOADED_RET(0.0f);
+	ERR_FAIL_INDEX_V(channel, this->mpt_module->get_num_channels(), 0.0f);
 	return this->mpt_module->get_current_channel_vu_rear_left(channel);
 }
 
 float AudioStreamPlaybackMPT::get_current_channel_vu_rear_right(int32_t channel) const {
 	CHECK_MOD_LOADED_RET(0.0f);
+	ERR_FAIL_INDEX_V(channel, this->mpt_module->get_num_channels(), 0.0f);
 	return this->mpt_module->get_current_channel_vu_rear_right(channel);
 }
 
 float AudioStreamPlaybackMPT::get_current_channel_vu_right(int32_t channel) const {
 	CHECK_MOD_LOADED_RET(0.0f);
+	ERR_FAIL_INDEX_V(channel, this->mpt_module->get_num_channels(), 0.0f);
 	return this->mpt_module->get_current_channel_vu_right(channel);
 }
 
@@ -137,6 +142,7 @@ double AudioStreamPlaybackMPT::get_current_estimated_bpm() const {
 
 void AudioStreamPlaybackMPT::select_subsong(int32_t subsong) {
 	CHECK_MOD_LOADED_RETV();
+	ERR_FAIL_COND(subsong < -1 || subsong >= this->mpt_module->get_num_subsongs());
 	this->mpt_module->select_subsong(subsong);
 }
 
@@ -147,7 +153,7 @@ int32_t AudioStreamPlaybackMPT::get_selected_subsong() const {
 
 void AudioStreamPlaybackMPT::set_current_speed(int32_t speed) {
 	CHECK_INT_LOADED_RETV();
-	this->mpt_interactive->set_current_speed(speed);
+	this->mpt_interactive->set_current_speed(Math::clamp(speed, 1, 65535));
 }
 
 int32_t AudioStreamPlaybackMPT::get_current_speed() const {
@@ -157,7 +163,7 @@ int32_t AudioStreamPlaybackMPT::get_current_speed() const {
 
 void AudioStreamPlaybackMPT::set_current_tempo(double tempo) {
 	CHECK_INT3_LOADED_RETV();
-	return this->mpt_interactive3->set_current_tempo2(tempo);
+	return this->mpt_interactive3->set_current_tempo2(Math::clamp(tempo, 32.0, 512.0));
 }
 
 double AudioStreamPlaybackMPT::get_current_tempo() const {
@@ -167,7 +173,7 @@ double AudioStreamPlaybackMPT::get_current_tempo() const {
 
 void AudioStreamPlaybackMPT::set_tempo_factor(double factor) {
 	CHECK_INT_LOADED_RETV();
-	this->mpt_interactive->set_tempo_factor(factor);
+	this->mpt_interactive->set_tempo_factor(Math::clamp(factor, 0.00001, 4.0));
 }
 
 double AudioStreamPlaybackMPT::get_tempo_factor() const {
@@ -177,7 +183,7 @@ double AudioStreamPlaybackMPT::get_tempo_factor() const {
 
 void AudioStreamPlaybackMPT::set_pitch_factor(double factor) {
 	CHECK_INT_LOADED_RETV();
-	this->mpt_interactive->set_pitch_factor(factor);
+	this->mpt_interactive->set_pitch_factor(Math::clamp(factor, 0.00001, 4.0));
 }
 
 double AudioStreamPlaybackMPT::get_pitch_factor() const {
@@ -187,7 +193,7 @@ double AudioStreamPlaybackMPT::get_pitch_factor() const {
 
 void AudioStreamPlaybackMPT::set_global_volume(double volume) {
 	CHECK_INT_LOADED_RETV();
-	this->mpt_interactive->set_global_volume(volume);
+	this->mpt_interactive->set_global_volume(Math::clamp(volume, 0.0, 1.0));
 }
 
 double AudioStreamPlaybackMPT::get_global_volume() const {
@@ -197,71 +203,85 @@ double AudioStreamPlaybackMPT::get_global_volume() const {
 
 void AudioStreamPlaybackMPT::set_channel_volume(int32_t channel, double volume) {
 	CHECK_INT_LOADED_RETV();
-	this->mpt_interactive->set_channel_volume(channel, volume);
+	ERR_FAIL_INDEX(channel, this->mpt_module->get_num_channels());
+	this->mpt_interactive->set_channel_volume(channel, Math::clamp(volume, 0.0, 1.0));
 }
 
 double AudioStreamPlaybackMPT::get_channel_volume(int32_t channel) const {
 	CHECK_INT_LOADED_RET(0.0);
+	ERR_FAIL_INDEX_V(channel, this->mpt_module->get_num_channels(), 0.0);
 	return this->mpt_interactive->get_channel_volume(channel);
 }
 
 void AudioStreamPlaybackMPT::set_channel_mute_status(int32_t channel, bool mute) {
 	CHECK_INT_LOADED_RETV();
+	ERR_FAIL_INDEX(channel, this->mpt_module->get_num_channels());
 	this->mpt_interactive->set_channel_mute_status(channel, mute);
 }
 
 bool AudioStreamPlaybackMPT::get_channel_mute_status(int32_t channel) const {
 	CHECK_INT_LOADED_RET(false);
+	ERR_FAIL_INDEX_V(channel, this->mpt_module->get_num_channels(), false);
 	return this->mpt_interactive->get_channel_mute_status(channel);
 }
 
 void AudioStreamPlaybackMPT::set_instrument_mute_status(int32_t instrument, bool mute) {
 	CHECK_INT_LOADED_RETV();
+	ERR_FAIL_INDEX(instrument, this->mpt_module->get_num_instruments());
 	this->mpt_interactive->set_instrument_mute_status(instrument, mute);
 }
 
 bool AudioStreamPlaybackMPT::get_instrument_mute_status(int32_t instrument) const {
 	CHECK_INT_LOADED_RET(false);
+	ERR_FAIL_INDEX_V(instrument, this->mpt_module->get_num_instruments(), false);
 	return this->mpt_interactive->get_instrument_mute_status(instrument);
 }
 
 int32_t AudioStreamPlaybackMPT::play_note(int32_t instrument, int32_t note, double volume, double panning) {
 	CHECK_INT_LOADED_RET(-1);
-	return this->mpt_interactive->play_note(instrument, note, volume, panning);
+	ERR_FAIL_INDEX_V(instrument, this->mpt_module->get_num_instruments(), -1);
+	return this->mpt_interactive->play_note(instrument, Math::clamp(note, 0, 119), Math::clamp(volume, 0.0, 1.0), Math::clamp(panning, -1.0, 1.0));
 }
 
 void AudioStreamPlaybackMPT::stop_note(int32_t channel) {
 	CHECK_INT_LOADED_RETV();
+	ERR_FAIL_INDEX(channel, this->mpt_module->get_num_channels());
 	this->mpt_interactive->stop_note(channel);
 }
 
 void AudioStreamPlaybackMPT::note_off(int32_t channel) {
 	CHECK_INT2_LOADED_RETV();
+	ERR_FAIL_INDEX(channel, this->mpt_module->get_num_channels());
 	this->mpt_interactive2->note_off(channel);
 }
 
 void AudioStreamPlaybackMPT::note_fade(int32_t channel) {
 	CHECK_INT2_LOADED_RETV();
+	ERR_FAIL_INDEX(channel, this->mpt_module->get_num_channels());
 	this->mpt_interactive2->note_fade(channel);
 }
 
 void AudioStreamPlaybackMPT::set_channel_panning(int32_t channel, double panning) {
 	CHECK_INT2_LOADED_RETV();
-	this->mpt_interactive2->set_channel_panning(channel, panning);
+	ERR_FAIL_INDEX(channel, this->mpt_module->get_num_channels());
+	this->mpt_interactive2->set_channel_panning(channel, Math::clamp(panning, -1.0, 1.0));
 }
 
 double AudioStreamPlaybackMPT::get_channel_panning(int32_t channel) const {
 	CHECK_INT2_LOADED_RET(0.0);
+	ERR_FAIL_INDEX_V(channel, this->mpt_module->get_num_channels(), 0.0);
 	return this->mpt_interactive2->get_channel_panning(channel);
 }
 
 void AudioStreamPlaybackMPT::set_note_finetune(int32_t channel, double finetune) {
 	CHECK_INT2_LOADED_RETV();
-	this->mpt_interactive2->set_note_finetune(channel, finetune);
+	ERR_FAIL_INDEX(channel, this->mpt_module->get_num_channels());
+	this->mpt_interactive2->set_note_finetune(channel, Math::clamp(finetune, -1.0, 1.0));
 }
 
 double AudioStreamPlaybackMPT::get_note_finetune(int32_t channel) const {
 	CHECK_INT2_LOADED_RET(0.0);
+	ERR_FAIL_INDEX_V(channel, this->mpt_module->get_num_channels(), 0.0);
 	return this->mpt_interactive2->get_note_finetune(channel);
 }
 
@@ -459,6 +479,7 @@ const PackedByteArray& AudioStreamMPT::get_data() const {
 
 void AudioStreamMPT::select_subsong(int32_t subsong) {
 	CHECK_MOD_LOADED_RETV();
+	ERR_FAIL_COND(subsong < -1 || subsong >= this->mpt_module->get_num_subsongs());
 	this->mpt_module->select_subsong(subsong);
 }
 
