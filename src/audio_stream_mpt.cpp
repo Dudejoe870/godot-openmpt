@@ -19,13 +19,13 @@ using namespace godot;
 #define CHECK_MOD_LOADED_RETV() if (!this->mpt_module) { WARN_PRINT_ED(MOD_NOT_LOADED_MSG); return; }
 
 #define CHECK_INT_LOADED_RET(retval) CHECK_MOD_LOADED_RET(retval); if (!this->mpt_interactive) { WARN_PRINT_ED(INT_NOT_LOADED_MSG); return retval; }
-#define CHECK_INT_LOADED_RETV() CHECK_MOD_LOADED_RETV(); if (!this->mpt_module) { WARN_PRINT_ED(INT_NOT_LOADED_MSG); return; }
+#define CHECK_INT_LOADED_RETV() CHECK_MOD_LOADED_RETV(); if (!this->mpt_interactive) { WARN_PRINT_ED(INT_NOT_LOADED_MSG); return; }
 
-#define CHECK_INT2_LOADED_RET(retval) CHECK_MOD_LOADED_RET(retval); if (!this->mpt_interactive) { WARN_PRINT_ED(INT2_NOT_LOADED_MSG); return retval; }
-#define CHECK_INT2_LOADED_RETV() CHECK_MOD_LOADED_RETV(); if (!this->mpt_module) { WARN_PRINT_ED(INT2_NOT_LOADED_MSG); return; }
+#define CHECK_INT2_LOADED_RET(retval) CHECK_MOD_LOADED_RET(retval); if (!this->mpt_interactive2) { WARN_PRINT_ED(INT2_NOT_LOADED_MSG); return retval; }
+#define CHECK_INT2_LOADED_RETV() CHECK_MOD_LOADED_RETV(); if (!this->mpt_interactive2) { WARN_PRINT_ED(INT2_NOT_LOADED_MSG); return; }
 
-#define CHECK_INT3_LOADED_RET(retval) CHECK_MOD_LOADED_RET(retval); if (!this->mpt_interactive) { WARN_PRINT_ED(INT3_NOT_LOADED_MSG); return retval; }
-#define CHECK_INT3_LOADED_RETV() CHECK_MOD_LOADED_RETV(); if (!this->mpt_module) { WARN_PRINT_ED(INT3_NOT_LOADED_MSG); return; }
+#define CHECK_INT3_LOADED_RET(retval) CHECK_MOD_LOADED_RET(retval); if (!this->mpt_interactive3) { WARN_PRINT_ED(INT3_NOT_LOADED_MSG); return retval; }
+#define CHECK_INT3_LOADED_RETV() CHECK_MOD_LOADED_RETV(); if (!this->mpt_interactive3) { WARN_PRINT_ED(INT3_NOT_LOADED_MSG); return; }
 
 void AudioStreamPlaybackMPT::_start(double p_from_pos) {
 	_seek(p_from_pos);
@@ -285,6 +285,16 @@ double AudioStreamPlaybackMPT::get_note_finetune(int32_t channel) const {
 	return this->mpt_interactive2->get_note_finetune(channel);
 }
 
+void AudioStreamPlaybackMPT::set_sync_samples(bool p_enable) {
+	CHECK_MOD_LOADED_RETV();
+	this->mpt_module->ctl_set_boolean("seek.sync_samples", p_enable);
+}
+
+bool AudioStreamPlaybackMPT::get_sync_samples() const {
+	CHECK_MOD_LOADED_RET(true);
+	return this->mpt_module->ctl_get_boolean("seek.sync_samples");
+}
+
 int32_t AudioStreamPlaybackMPT::_mix(AudioFrame *p_buffer, double p_rate_scale, int32_t p_frames) {
 	if (!this->mpt_module) {
 		active = false;
@@ -382,6 +392,9 @@ void AudioStreamPlaybackMPT::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_note_finetune", "channel", "finetune"), &AudioStreamPlaybackMPT::set_note_finetune);
 	ClassDB::bind_method(D_METHOD("get_note_finetune", "channel"), &AudioStreamPlaybackMPT::get_note_finetune);
+
+	ClassDB::bind_method(D_METHOD("set_sync_samples", "sync_samples"), &AudioStreamPlaybackMPT::set_sync_samples);
+	ClassDB::bind_method(D_METHOD("get_sync_samples"), &AudioStreamPlaybackMPT::get_sync_samples);
 }
 
 AudioStreamPlaybackMPT::AudioStreamPlaybackMPT() {}
@@ -423,6 +436,38 @@ bool AudioStreamMPT::_is_monophonic() const {
 	return false;
 }
 
+void AudioStreamMPT::set_skip_plugins(bool p_enable) {
+	this->skip_plugins = p_enable;
+}
+
+bool AudioStreamMPT::get_skip_plugins() const {
+	return this->skip_plugins;
+}
+
+void AudioStreamMPT::set_skip_subsongs_init(bool p_enable) {
+	this->skip_subsongs_init = p_enable;
+}
+
+bool AudioStreamMPT::get_skip_subsongs_init() const {
+	return this->skip_subsongs_init;
+}
+
+void AudioStreamMPT::set_sync_samples(bool p_enable) {
+	this->sync_samples = p_enable;
+}
+
+bool AudioStreamMPT::get_sync_samples() const {
+	return this->sync_samples;
+}
+
+std::map<std::string, std::string> AudioStreamMPT::get_initial_ctls() const {
+	return std::map<std::string, std::string> {
+		{ "load.skip_plugins", this->skip_plugins ? "1" : "0" },
+		{ "load.skip_subsongs_init", this->skip_subsongs_init ? "1" : "0" },
+		{ "seek.sync_samples", this->sync_samples ? "1" : "0" },
+	};
+}
+
 void AudioStreamMPT::set_data(const PackedByteArray& p_data) {
 	module_error = Error::OK;
 
@@ -435,7 +480,7 @@ void AudioStreamMPT::set_data(const PackedByteArray& p_data) {
 
 	if (this->mpt_module) delete mpt_module;
 	try {
-		this->mpt_module = new openmpt::module(this->data.ptr(), this->data.size());
+		this->mpt_module = new openmpt::module(this->data.ptr(), this->data.size(), std::clog, get_initial_ctls());
 	} catch (openmpt::exception& e) {
 		module_error = Error::ERR_PARSE_ERROR;
 		goto set_empty_module;
@@ -445,7 +490,7 @@ void AudioStreamMPT::set_data(const PackedByteArray& p_data) {
 	AudioServer::get_singleton()->lock();
 	for (AudioStreamPlaybackMPT* playback : open_playback_objects) {
 		if (playback->mpt_module) delete playback->mpt_module;
-		playback->mpt_module = new openmpt::module_ext(this->data.ptr(), this->data.size());
+		playback->mpt_module = new openmpt::module_ext(this->data.ptr(), this->data.size(), std::clog, get_initial_ctls());
 		playback->mpt_interactive = static_cast<openmpt::ext::interactive*>(
 			playback->mpt_module->get_interface(openmpt::ext::interactive_id));
 		playback->mpt_interactive2 = static_cast<openmpt::ext::interactive2*>(
@@ -646,7 +691,7 @@ Ref<AudioStreamPlayback> AudioStreamMPT::_instantiate_playback() const {
 	Ref<AudioStreamPlaybackMPT> playback;
 	playback.instantiate();
 	playback->base = Ref<AudioStreamMPT>(this);
-	playback->mpt_module = !data.is_empty() ? new openmpt::module_ext(this->data.ptr(), this->data.size()) : nullptr;
+	playback->mpt_module = !data.is_empty() ? new openmpt::module_ext(this->data.ptr(), this->data.size(), std::clog, get_initial_ctls()) : nullptr;
 	if (playback->mpt_module)
 	{
 		playback->mpt_interactive = static_cast<openmpt::ext::interactive*>(
@@ -670,6 +715,14 @@ void AudioStreamMPT::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_stereo", "stereo"), &AudioStreamMPT::set_stereo);
 	ClassDB::bind_method(D_METHOD("is_stereo"), &AudioStreamMPT::is_stereo);
+
+	ClassDB::bind_method(D_METHOD("set_skip_plugins", "skip_plugins"), &AudioStreamMPT::set_skip_plugins);
+	ClassDB::bind_method(D_METHOD("get_skip_plugins"), &AudioStreamMPT::get_skip_plugins);
+	ClassDB::bind_method(D_METHOD("set_skip_subsongs_init", "skip_subsongs_init"), &AudioStreamMPT::set_skip_subsongs_init);
+	ClassDB::bind_method(D_METHOD("get_skip_subsongs_init"), &AudioStreamMPT::get_skip_subsongs_init);
+
+	ClassDB::bind_method(D_METHOD("set_sync_samples", "sync_samples"), &AudioStreamMPT::set_sync_samples);
+	ClassDB::bind_method(D_METHOD("get_sync_samples"), &AudioStreamMPT::get_sync_samples);
 
 	ClassDB::bind_method(D_METHOD("set_data", "data"), &AudioStreamMPT::set_data);
 	ClassDB::bind_method(D_METHOD("get_data"), &AudioStreamMPT::get_data);
@@ -715,6 +768,10 @@ void AudioStreamMPT::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::PACKED_BYTE_ARRAY, "data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR), "set_data", "get_data");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "loop_mode", PROPERTY_HINT_ENUM, "Disabled,Enabled"), "set_loop_mode", "get_loop_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "stereo"), "set_stereo", "is_stereo");
+
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "skip_plugins"), "set_skip_plugins", "get_skip_plugins");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "skip_subsongs_init"), "set_skip_subsongs_init", "get_skip_subsongs_init");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "sync_samples"), "set_sync_samples", "get_sync_samples");
 
 	BIND_ENUM_CONSTANT(LOOP_DISABLED);
 	BIND_ENUM_CONSTANT(LOOP_ENABLED);

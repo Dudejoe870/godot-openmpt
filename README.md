@@ -12,7 +12,7 @@ Just go to the prebuilt branch and use the download ZIP feature of Github, extra
 
 If you want to take a look at a commit that's more recent, then you can download the addon as a CI build artifact from the Github workflow action.
 
-Unfortunately there are no MacOS, Android, iOS, or any 32-bit binaries currently prebuilt. If you need any of those you will have to build them yourself (and in the case of mobile platforms, add them to the .gdextension file)
+Unfortunately there are no MacOS, Android, iOS, or any 32-bit binaries currently prebuilt. If you need any of those you will have to build them yourself and add them to the .gdextension file.
 
 ## Documentation
 

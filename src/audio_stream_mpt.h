@@ -99,6 +99,9 @@ public:
 	void set_note_finetune(int32_t channel, double finetune);
 	double get_note_finetune(int32_t channel) const;
 
+	void set_sync_samples(bool p_enable);
+	bool get_sync_samples() const;
+
 	virtual int32_t _mix(AudioFrame *p_buffer, double p_rate_scale, int32_t p_frames) override;
 
 	AudioStreamPlaybackMPT();
@@ -124,6 +127,9 @@ public:
 private:
 	LoopMode loop_mode = LoopMode::LOOP_DISABLED;
 	bool stereo = true;
+	bool skip_plugins = false;
+	bool skip_subsongs_init = false;
+	bool sync_samples = true;
 	PackedByteArray data;
 
 	// We need to create a module to parse any information about the file,
@@ -133,6 +139,8 @@ private:
 	Vector<AudioStreamPlaybackMPT*> open_playback_objects;
 
 	Error module_error = Error::OK;
+
+	std::map<std::string, std::string> get_initial_ctls() const;
 
 	friend class AudioStreamPlaybackMPT;
 protected:
@@ -146,6 +154,18 @@ public:
 
 	virtual double _get_length() const override;
 	virtual bool _is_monophonic() const override;
+
+	// Load CTLs
+	// These only apply on the next module load.
+	// Whether that means loading new data into this stream, or instantiating a new playback.
+	void set_skip_plugins(bool p_enable);
+	bool get_skip_plugins() const;
+	void set_skip_subsongs_init(bool p_enable);
+	bool get_skip_subsongs_init() const;
+
+	// Seek CTLs
+	void set_sync_samples(bool p_enable);
+	bool get_sync_samples() const;
 
 	void set_data(const PackedByteArray& p_data);
 	const PackedByteArray& get_data() const;
