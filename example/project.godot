@@ -1,0 +1,28 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Godot-OpenMPT-example"
+run/main_scene="res://examples/1-Simple Playback/simple_playback.tscn"
+config/features=PackedStringArray("4.2", "Mobile")
+config/icon="res://icon.svg"
+
+[dotnet]
+
+project/assembly_name="Godot-OpenMPT-example"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot-openmpt/plugin.cfg")
+
+[rendering]
+
+renderer/rendering_method="mobile"
