@@ -8,7 +8,7 @@ Because my game uses mod-tracker music inspired by Deus-Ex, and it also makes lo
 
 ## Where can I find a pre-built addon?
 
-Just go to the prebuilt branch and use the download ZIP feature of Github, extract it into your project and you're done!
+Just go to the prebuilt branch and use the download ZIP feature of Github, or use "Releases" on the side, extract it into your project and you're done!
 
 If you want to take a look at a commit that's more recent, then you can download the addon as a CI build artifact from the Github workflow action.
 
@@ -18,7 +18,7 @@ Unfortunately there are no MacOS, Android, iOS, or any 32-bit binaries currently
 
 For information on what functions you can use either look at the source code, or look at the in-editor docs for the types `AudioStreamMPT` and `AudioStreamPlaybackMPT`.
 
-There is no official written documentation for the time being, but just the function names and parameter names should most likely be helpful enough; and if you know any amount of C++, the code should be pretty easy to parse.
+There is no official written documentation for the time being, but just the function names and parameter names should most likely be helpful enough; and if you know any amount of C++ the code should be pretty easy to parse.
 
 ## What platforms does it support?
 
@@ -34,30 +34,37 @@ It has been tested on Windows and Linux. MacOS might work but you're on your own
 
 ### godot-cpp (both platforms)
 
-If you're on Windows, you'll still want to use CMake from the terminal and not from Visual Studio like recommended below.
+If you're on Windows use the Visual Studio 2022 CMake integration; though you'll want to use CMake from a Visual Studio Developer Command Prompt terminal and probably not from Visual Studio itself (though you could, it's just probably easier to do it from a terminal).
 
 Open the `custom-godotcpp-build` directory in the terminal. Here we'll use CMake with this as the source *and* the binary directory (this is required for the main build script to work).
 
 There is an optional define called `GENERATE_DEBUG_SYMBOLS`, this is the reason we need a custom build script in the first place. 
-If you're developing and ran into an error in GodotCPP, feel free to turn it on, but if you're just building this for any other reason define it to be `OFF` (`-DGENERATE_DEBUG_SYMBOLS=OFF`).
+If you're developing and ran into an error in godot-cpp OR libopenmpt itself, feel free to turn it on. But if you're just building this for any other reason define it to be `OFF` (`-DGENERATE_DEBUG_SYMBOLS=OFF`).
 Otherwise, the binaries will end up being pretty big (perhaps so big that Github won't even let you push the files anymore!), so use with caution.
 
-If you want to build both `Release` and `Debug` versions you'll have to define the `CMAKE_BUILD_TYPE`, then delete all the extra CMake generated files (other than the `bin` and `gen` directories)
+You can run something like this: ``cmake . -G Ninja -DGENERATE_DEBUG_SYMBOLS=OFF -DCMAKE_BUILD_TYPE=<INSERT EITHER Release OR Debug HERE>``
+Then run `ninja`, the generator we defined; which is recommended since it's fast and comes with VS:
+``ninja``
+
+If you want to build both `Release` and `Debug` versions you'll have to define the `CMAKE_BUILD_TYPE` for one of them, then delete all the extra CMake generated files (other than the `bin` and `gen` directories, do NOT delete `CMakeLists.txt`!!!)
 then define `CMAKE_BUILD_TYPE` again as the opposite value. This will generate both required libraries for `Release` and `Debug`.
 
 ## Windows Build Instructions
 
 ### Requirements
 
-I recommend using Visual Studio 2022 and its CMake integration.
+I recommend using Visual Studio 2022 and its CMake integration, but through a Visual Studio Developer Command Prompt; which comes with VS2022.
 
 ### The Addon
 
-Open the root repository directory in Visual Studio 2022 and build it in `x64-Debug`.
+This is pretty similar to building godot-cpp.
 
-Create a configuration for `x64-Release` setting the build type appropriately in the panel, build that as well.
+Run CMake in the root repository directory `cmake . -B build -G Ninja -DCMAKE_BUILD_TYPE=<INSERT EITHER Release OR Debug HERE>`,
+then `cd build && ninja`.
 
-After this is done you will have both `.dll`s in the `bin` directory of the addon folder.
+You can run it again for the opposite configuration if you want both debug and release.
+
+After this is done you will have a `.dll` file(s) in the `bin` directory of the addon folder.
 
 ## Linux Build Instructions
 
@@ -68,8 +75,12 @@ Also recommended is `ninja-build` for the build system.
 
 ### The Addon
 
-Run CMake in the root repository directory, in this case `cmake . -B build -G Ninja -DCMAKE_BUILD_TYPE=<INSERT EITHER Release OR Debug HERE>`,
+It's pretty much the same as the Windows instructions:
+
+Run CMake in the root repository directory, `cmake . -B build -G Ninja -DCMAKE_BUILD_TYPE=<INSERT EITHER Release OR Debug HERE>`,
 then `cd build && ninja`.
+
+You can run it again for the opposite configuration if you want both debug and release.
 
 After this is done you will have a `.so` file(s) in the `bin` directory of the addon folder.
 
@@ -82,4 +93,3 @@ You now can play your mod-tracker formats as a regular audio stream (and even ma
 
 Open an issue, I'll be happy to take a look. I can't guarantee support though, I'm just a solo hobby developer, but I'm more than willing to take feedback or try to help if I can.
 
-# This code is experimental, however it is functional (at least on my machine)

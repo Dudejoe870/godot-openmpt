@@ -5,8 +5,6 @@ compatibility_minimum = "4.2"
 
 [libraries]
 
-macos.debug = "bin/libgdmpt-macos.debug.64.framework"
-macos.release = "bin/libgdmpt-macos.release.64.framework"
 windows.debug.x86_64 = "bin/libgdmpt-windows.debug.64.dll"
 windows.release.x86_64 = "bin/libgdmpt-windows.release.64.dll"
 linux.debug.x86_64 = "bin/libgdmpt-linux.debug.64.so"
