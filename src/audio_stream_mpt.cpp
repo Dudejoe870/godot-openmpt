@@ -245,19 +245,16 @@ int32_t AudioStreamPlaybackMPT::play_note(int32_t instrument, int32_t note, doub
 
 void AudioStreamPlaybackMPT::stop_note(int32_t channel) {
 	CHECK_INT_LOADED_RETV();
-	ERR_FAIL_INDEX(channel, this->mpt_module->get_num_channels());
 	this->mpt_interactive->stop_note(channel);
 }
 
 void AudioStreamPlaybackMPT::note_off(int32_t channel) {
 	CHECK_INT2_LOADED_RETV();
-	ERR_FAIL_INDEX(channel, this->mpt_module->get_num_channels());
 	this->mpt_interactive2->note_off(channel);
 }
 
 void AudioStreamPlaybackMPT::note_fade(int32_t channel) {
 	CHECK_INT2_LOADED_RETV();
-	ERR_FAIL_INDEX(channel, this->mpt_module->get_num_channels());
 	this->mpt_interactive2->note_fade(channel);
 }
 
