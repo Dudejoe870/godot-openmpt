@@ -132,6 +132,16 @@ else()
 		set(CMAKE_SHARED_LIBRARY_SUFFIX ".wasm")
 	endif()
 
+	if(${PLATFORM} MATCHES "windows")
+		set(GODOT_LINKER_FLAGS "-static-libgcc -static-libstdc++ -Wl,-flto,--gc-sections,-R,'$$ORIGIN',-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive")
+		set(CMAKE_C_COMPILER "x86_64-w64-mingw32-gcc")
+		set(CMAKE_CXX_COMPILER "x86_64-w64-mingw32-c++")
+		set(CMAKE_AR "x86_64-w64-mingw32-gcc-ar")
+		set(CMAKE_NM "x86_64-w64-mingw32-gcc-nm")
+		set(CMAKE_RANLIB "x86_64-w64-mingw32-gcc-ranlib")	
+		set(CMAKE_SHARED_LIBRARY_SUFFIX ".dll")
+  endif()
+
 	set(GODOT_COMPILE_FLAGS "-fPIC -flto -fvisibility=hidden -fvisibility-inlines-hidden -ffunction-sections -fdata-sections -fexceptions -frtti -pthread")
 
 	if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
@@ -188,6 +198,10 @@ endif()
 
 if(${PLATFORM} MATCHES "web")
 	set(SYSTEM_NAME web)
+endif()
+
+if(${PLATFORM} MATCHES "windows")
+	set(SYSTEM_NAME windows)
 endif()
 
 target_link_directories(${PROJECT_NAME}

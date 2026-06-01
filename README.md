@@ -28,8 +28,8 @@ In theory, all of them. In practice we have tested only:
 
 - Windows
 - Linux
-- Web (in a Linux development environment with Threads Enabled)
-
+- Web with threads enabled (from a Linux development environment)
+- Windows (from a Linux developement environment)
 
 ## Building godot-cpp
 
@@ -48,7 +48,7 @@ Run these in the godot-cpp directory for each platform you intend to support (re
  scons api_version=4.3 target=template_release platform=PLATFORM
 ```
 
-## Windows Build Instructions
+## Windows Build Instructions 
 
 ### Requirements
 
@@ -97,6 +97,23 @@ then `ninja`.
 You can run it again for the opposite configuration if you want both debug and release.
 
 After this is done you will have a `.wasm` file(s) in the `bin` directory of the addon folder.
+
+## Alternative Windows Build (inside a Linux system)
+
+### Requirements
+
+Mingw-w64 installed on the system. On some distros it may be required to set the MINGW_PREFIX environment variable to where the mingw binaries are located.
+
+### The Addon
+
+It's pretty much the same as the Linux instructions, except for -DPLATFORM=windows
+
+Run CMake in the root repository directory, `cmake . -B build -G Ninja -DCMAKE_BUILD_TYPE=<INSERT EITHER Release OR Debug HERE> -DPLATFORM=windows`,
+then `ninja`.
+
+You can run it again for the opposite configuration if you want both debug and release.
+
+After this is done you will have a `.dll` file(s) in the `bin` directory of the addon folder.
 
 ## After Build
 
