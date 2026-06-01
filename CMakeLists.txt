@@ -11,10 +11,10 @@ project(godot-openmpt)
 set(CMAKE_STATIC_LIBRARY_PREFIX "")
 set(CMAKE_SHARED_LIBRARY_PREFIX "")
 
-set(GODOT_GDEXTENSION_DIR godot-cpp/gdextension/ CACHE STRING "Path to GDExtension interface header directory")
-set(CPP_BINDINGS_PATH godot-cpp/ CACHE STRING "Path to C++ bindings")
-set(GODOT_LIB_PATH custom-godotcpp-build/bin CACHE STRING "Path to the built Godot C++ libraries")
-set(GODOT_GEN_INCLUDE_PATH custom-godotcpp-build/gen/include CACHE STRING "Path to generated Godot includes")
+set(GODOT_GDEXTENSION_DIR ../godot-cpp/gdextension/include CACHE STRING "Path to GDExtension interface header directory")
+set(CPP_BINDINGS_PATH ../godot-cpp/ CACHE STRING "Path to C++ bindings")
+set(GODOT_LIB_PATH ../godot-cpp/bin CACHE STRING "Path to the built Godot C++ libraries")
+set(GODOT_GEN_INCLUDE_PATH ../godot-cpp/gen/include CACHE STRING "Path to generated Godot includes")
 set(EXAMPLE_DIR ${CMAKE_SOURCE_DIR}/example/ CACHE STRING "Path to example project")
 
 # Change the output directory to the bin directory
@@ -74,7 +74,7 @@ add_library(${PROJECT_NAME} SHARED
     src/openmpt_singleton.cpp
 )
 
-target_include_directories(${PROJECT_NAME} SYSTEM
+target_include_directories(${PROJECT_NAME} 
 	PRIVATE
 		${CPP_BINDINGS_PATH}/include
 		${GODOT_GEN_INCLUDE_PATH}
@@ -122,6 +122,16 @@ else()
 		set(CMAKE_RANLIB "gcc-ranlib")
 	endif()
 
+	if(${PLATFORM} MATCHES "web")
+		set(GODOT_LINKER_FLAGS "-sWASM_BIGINT -sUSE_PTHREADS=1 -sSIDE_MODULE=1 -sSUPPORT_LONGJMP='wasm' ")
+		set(CMAKE_C_COMPILER "emcc")
+		set(CMAKE_CXX_COMPILER "em++")
+		set(CMAKE_AR "emar")
+		set(CMAKE_NM "emnm")
+		set(CMAKE_RANLIB "emranlib")
+		set(CMAKE_SHARED_LIBRARY_SUFFIX ".wasm")
+	endif()
+
 	set(GODOT_COMPILE_FLAGS "-fPIC -flto -fvisibility=hidden -fvisibility-inlines-hidden -ffunction-sections -fdata-sections -fexceptions -frtti -pthread")
 
 	if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
@@ -151,24 +161,33 @@ endif()
 # Create the correct name (godot.os.build_type.system_bits)
 # Synchronized with godot-cpp's CMakeLists.txt
 
-set(BITS .32)
+set(BITS .x86_32)
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-	set(BITS .64)
+	set(BITS .x86_64)
 endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
 
+if(${PLATFORM} MATCHES "web")
+	set(BITS .wasm32)
+endif()
+
 if(CMAKE_BUILD_TYPE MATCHES Debug)
-	set(GODOT_CPP_BUILD_TYPE Debug)
+	set(GODOTCPP_BUILD_TYPE template_debug)
+	set(BUILD_TYPE debug)
 else()
-	set(GODOT_CPP_BUILD_TYPE Release)
+	set(GODOTCPP_BUILD_TYPE template_release)
+	set(BUILD_TYPE release)
 endif()
 
 string(TOLOWER ${CMAKE_SYSTEM_NAME} SYSTEM_NAME)
-string(TOLOWER ${GODOT_CPP_BUILD_TYPE} BUILD_TYPE)
 
 if(ANDROID)
 	# Added the android abi after system name
 	set(SYSTEM_NAME ${SYSTEM_NAME}.${ANDROID_ABI})
 	set(BITS "")
+endif()
+
+if(${PLATFORM} MATCHES "web")
+	set(SYSTEM_NAME web)
 endif()
 
 target_link_directories(${PROJECT_NAME}
@@ -177,7 +196,7 @@ target_link_directories(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-	godot-cpp.${SYSTEM_NAME}.${BUILD_TYPE}${BITS}
+	godot-cpp.${SYSTEM_NAME}.${GODOTCPP_BUILD_TYPE}${BITS}
 	libopenmpt
 )
 
