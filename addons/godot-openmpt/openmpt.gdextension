@@ -1,12 +1,14 @@
 [configuration]
 
 entry_symbol = "godot_openmpt_init"
-compatibility_minimum = "4.2"
+compatibility_minimum = "4.3"
 
 [libraries]
 macos.debug = "bin/libgdmpt-darwin.debug.64.dylib"
 macos.release = "bin/libgdmpt-darwin.release.64.dylib"
-windows.debug.x86_64 = "bin/libgdmpt-windows.debug.64.dll"
-windows.release.x86_64 = "bin/libgdmpt-windows.release.64.dll"
-linux.debug.x86_64 = "bin/libgdmpt-linux.debug.64.so"
-linux.release.x86_64 = "bin/libgdmpt-linux.release.64.so"
+windows.debug.x86_64 = "bin/libgdmpt-windows.debug.x86_64.dll"
+windows.release.x86_64 = "bin/libgdmpt-windows.release.x86_64.dll"
+linux.debug.x86_64 = "bin/libgdmpt-linux.debug.x86_64.so"
+linux.release.x86_64 = "bin/libgdmpt-linux.release.x86_64.so"
+web.debug.wasm32 = "bin/libgdmpt-web-debug.wasm32.wasm"
+web.release.wasm32 = "bin/libgdmpt-web-release.wasm32.wasm"

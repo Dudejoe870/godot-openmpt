@@ -102,7 +102,7 @@ public:
 	void set_sync_samples(bool p_enable);
 	bool get_sync_samples() const;
 
-	virtual int32_t _mix(AudioFrame *p_buffer, double p_rate_scale, int32_t p_frames) override;
+	virtual int32_t _mix(AudioFrame *p_buffer, double p_rate_scale, int32_t p_frames);
 
 	AudioStreamPlaybackMPT();
 	~AudioStreamPlaybackMPT();
